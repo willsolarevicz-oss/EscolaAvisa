@@ -12,7 +12,6 @@ Design técnico da Fase 1 em
 
 ## Equipe
 - Luis Guilherme Frankio
-- Cleomar Dziurkowski
 - Will Solarevicz
 
 ## Rodando localmente
