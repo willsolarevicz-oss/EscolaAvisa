@@ -5,6 +5,8 @@ services:
       - "8000:8000"
     volumes:
       - ./src:/app/src
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+psycopg://escolaavisa:escolaavisa@db:5432/escolaavisa
     depends_on:
@@ -17,7 +19,7 @@ services:
       POSTGRES_PASSWORD: escolaavisa
       POSTGRES_DB: escolaavisa
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - escolaavisa_db_data:/var/lib/postgresql/data
 
