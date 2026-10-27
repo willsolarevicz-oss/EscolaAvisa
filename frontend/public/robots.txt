@@ -1,0 +1,3 @@
+# EscolaAvis é um sistema privado (dados de alunos e responsáveis): nada deve ser indexado.
+User-agent: *
+Disallow: /

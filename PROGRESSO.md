@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-10-27 — fim da Fase 1.
+> Última atualização: 2026-10-27 — fim da Fase 1 (+ revisão: 404 e robots.txt).
 
 ---
 
@@ -46,11 +46,13 @@ escola-avisa/
         ├── hooks/           useAuth, useApiHealth
         ├── services/        api.js (Axios central + interceptors), authService, healthService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute
-        ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>)
+        ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
+        │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
         ├── components/      Logo, Button, TextField, Alert, Sidebar, Header, FullScreenStatus
         ├── pages/           LoginPage, DashboardPage, NotFoundPage
         ├── utils/           tokenStorage, jwt (decode sem validar), formatters
         └── styles/          global.css (design tokens em variáveis CSS)
+    └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
 **Fluxo de uma requisição:** `routes → middlewares (authenticate/authorize/validateBody) → controller → service → repository → PostgreSQL`. Erros sobem para o `errorHandler` central.
@@ -100,7 +102,9 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] Helmet, CORS restrito ao frontend, limite de body 100kb, rate limit no login
 - [x] Tratamento central de erros (formato `{ success: false, message }`, sem stack trace, erros do PG mapeados para 400/409)
 - [x] Health check com teste real do banco (503 se o banco cair)
-- [x] Frontend: login (validação, mostrar/ocultar senha, loading, erros amigáveis), sessão persistente, rotas protegidas, dashboard inicial, logout, 404
+- [x] Frontend: login (validação, mostrar/ocultar senha, loading, erros amigáveis), sessão persistente, rotas protegidas, dashboard inicial, logout
+- [x] Página 404 sensível à sessão: logado → dentro do layout, com "Voltar ao dashboard" (+ "Página anterior" se houver histórico); deslogado → página avulsa com "Ir para o login"
+- [x] `robots.txt` (`Disallow: /`) + `<meta name="robots" content="noindex, nofollow">`
 - [x] Sidebar com todos os módulos futuros (desabilitados com "Em breve"), gaveta em tablet/celular (fecha com Esc/clique fora)
 - [x] Dashboard sem números falsos ("—" + "Em breve"); painel de status com dados reais do `/api/health`
 - [x] **Testes automatizados: 42 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit, constraints do banco
@@ -168,6 +172,7 @@ Frontend:
 2. Formulário de criação/edição (modal ou página) e ação de ativar/desativar.
 3. Em `config/navigation.js`: `to: '/usuarios'`, `available: true` e a rota em `AppRoutes.jsx`.
 4. Criar uma rota protegida por perfil no frontend (ex.: `ProtectedRoute` com `allowedRoles`) — apenas UX; o backend continua sendo quem autoriza.
+5. Criar o componente de **breadcrumbs** no `DashboardLayout` (abaixo do header), já que a Fase 2 traz as primeiras páginas aninhadas (ex.: Dashboard › Usuários › Editar). Usar `<nav aria-label="Trilha de navegação">` e marcar o item atual com `aria-current="page"`.
 
 ## Decisões técnicas
 
@@ -194,4 +199,6 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 19. **Frontend com CSS Modules + tokens em `styles/global.css`** (sem framework de UI). Cores oficiais: primária `#2563EB`, escura `#1E3A8A`, fundo `#F8FAFC`, texto `#1E293B`, verde `#16A34A`, amarelo `#F59E0B`, vermelho `#DC2626`.
 20. **Módulos não implementados aparecem desabilitados na sidebar** ("Em breve") e os cards mostram "—". Proibido exibir números fictícios.
 21. **Porta do Vite fixa em 5173 (`strictPort`)**, pois precisa bater com `FRONTEND_URL` do CORS.
-22. **Repositório Git próprio em `escola-avisa/`.** A pasta-mãe (`C:\Users\wills`) também é um repositório Git; o repo aninhado evita misturar históricos.
+22. **Sistema não indexável** (`robots.txt` + meta `noindex`): é privado e lida com dados de menores. Se um dia houver site institucional público, ele deve ser um projeto/rota separado com regras próprias de SEO.
+23. **Checklist de UX usado como referência** (404, CTAs claros, URLs legíveis, breadcrumbs, FAQ, cases, página de obrigado, CTA fixo no mobile, robots.txt). No sistema logado se aplicam: 404, CTAs, URLs, breadcrumbs (a partir da Fase 2) e robots. Cases, obrigado, FAQ e CTA fixo valem apenas para um eventual site público.
+24. **Repositório Git próprio em `escola-avisa/`.** A pasta-mãe (`C:\Users\wills`) também é um repositório Git; o repo aninhado evita misturar históricos.

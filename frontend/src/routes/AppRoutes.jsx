@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { DashboardLayout } from '../layouts/DashboardLayout';
+import { SessionAwareLayout } from '../layouts/SessionAwareLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -21,7 +22,9 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
+      <Route element={<SessionAwareLayout title="Página não encontrada" />}>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
   );
 }
