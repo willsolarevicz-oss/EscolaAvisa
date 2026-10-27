@@ -1,0 +1,32 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.code {
+  margin-top: var(--space-8);
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.title {
+  margin-top: var(--space-3);
+  font-size: 1.4rem;
+}
+
+.text {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.link {
+  margin-top: var(--space-6);
+  font-weight: 600;
+}
