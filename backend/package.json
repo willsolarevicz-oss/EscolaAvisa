@@ -6,7 +6,7 @@
   "type": "module",
   "main": "src/server.js",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.12"
   },
   "scripts": {
     "dev": "node --watch src/server.js",

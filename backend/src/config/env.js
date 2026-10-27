@@ -28,6 +28,37 @@ function positiveInt(name, fallback) {
   return value;
 }
 
+/**
+ * Validade do JWT. Só aceita número + unidade: um número puro ("28800") seria lido
+ * pelo jsonwebtoken como MILISSEGUNDOS, e um texto inválido só falharia no primeiro login.
+ */
+export function parseJwtExpiresIn(raw) {
+  const value = raw?.trim();
+  if (!value) return '8h';
+  if (!/^[1-9]\d*[smhd]$/.test(value)) {
+    throw new Error(
+      `JWT_EXPIRES_IN inválido: "${value}". Use número + unidade (s, m, h ou d), ex.: 15m, 8h, 1d`,
+    );
+  }
+  return value;
+}
+
+/**
+ * Quantos proxies reversos ficam na frente da API (Nginx, load balancer...).
+ * Sem isso, atrás de proxy todo cliente tem o IP do proxy e o rate limit do login
+ * bloquearia todo mundo junto. Aceita: false (padrão), nº de proxies, ou lista de IPs/sub-redes.
+ */
+export function parseTrustProxy(raw) {
+  const value = raw?.trim();
+  if (!value || value === 'false' || value === '0') return false;
+  if (/^\d+$/.test(value)) return Number(value);
+  if (value === 'true') {
+    // "true" confia em qualquer X-Forwarded-For: o cliente poderia forjar o IP e burlar o rate limit.
+    throw new Error('TRUST_PROXY=true é inseguro. Informe o número de proxies (ex.: 1) ou os IPs deles.');
+  }
+  return value;
+}
+
 const nodeEnv = process.env.NODE_ENV || 'development';
 if (!VALID_ENVS.includes(nodeEnv)) {
   throw new Error(`NODE_ENV inválido: ${nodeEnv}. Use: ${VALID_ENVS.join(', ')}`);
@@ -48,7 +79,8 @@ export const env = Object.freeze({
   port: positiveInt('PORT', 3333),
   databaseUrl,
   jwtSecret,
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || '8h',
+  jwtExpiresIn: parseJwtExpiresIn(process.env.JWT_EXPIRES_IN),
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   frontendUrls: (process.env.FRONTEND_URL || 'http://localhost:5173')
     .split(',')
     .map((url) => url.trim())

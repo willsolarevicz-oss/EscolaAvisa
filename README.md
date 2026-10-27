@@ -23,7 +23,7 @@ escola-avisa/
 
 ## 1. Requisitos
 
-- **Node.js 20.19+** (desenvolvido com Node 22) e npm
+- **Node.js 22.12+** e npm (o `npm test` usa recursos do test runner que não existem no Node 20)
 - **PostgreSQL 14+** (desenvolvido com PostgreSQL 17)
 - Git
 
@@ -83,10 +83,11 @@ npm run dev               # abre em http://localhost:5173
 | `DATABASE_URL`                    | **sim**     | `postgres://usuario:senha@host:5432/escolaavis`                                 |
 | `TEST_DATABASE_URL`               | para testes | Banco usado pelo `npm test`. **O nome deve terminar com `_test`**               |
 | `JWT_SECRET`                      | **sim**     | Segredo do JWT, **mínimo 32 caracteres aleatórios**                             |
-| `JWT_EXPIRES_IN`                  | não         | Validade do token (padrão `8h`)                                                 |
+| `JWT_EXPIRES_IN`                  | não         | Validade do token: número + unidade `s`/`m`/`h`/`d` (padrão `8h`). Número sem unidade é recusado |
 | `FRONTEND_URL`                    | não         | Origem(ns) liberadas no CORS, separadas por vírgula (padrão `http://localhost:5173`) |
 | `AUTH_RATE_LIMIT_MAX`             | não         | Tentativas de login com falha por IP na janela (padrão `10`)                    |
 | `AUTH_RATE_LIMIT_WINDOW_MINUTES`  | não         | Janela do rate limit em minutos (padrão `15`)                                   |
+| `TRUST_PROXY`                     | em produção atrás de proxy | Nº de proxies reversos na frente da API (padrão `false`). **Obrigatório configurar atrás de Nginx/load balancer**, senão todos os usuários dividem o mesmo limite de login. `true` é recusado por segurança |
 | `SEED_ADMIN_PASSWORD`             | em produção | Senha do admin criado pelo seed. Em desenvolvimento, se vazio, usa `Admin@123` |
 
 Gere um `JWT_SECRET` seguro com:
@@ -95,7 +96,7 @@ Gere um `JWT_SECRET` seguro com:
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
-A API **não inicia** se `DATABASE_URL` ou `JWT_SECRET` estiverem ausentes, ou se o segredo for curto demais.
+A API **não inicia** se `DATABASE_URL` ou `JWT_SECRET` estiverem ausentes, se o segredo for curto demais, ou se `JWT_EXPIRES_IN`/`TRUST_PROXY` tiverem formato inválido.
 
 ### `frontend/.env`
 

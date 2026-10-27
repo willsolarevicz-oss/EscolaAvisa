@@ -14,7 +14,7 @@ O **EscolaAvis** é um sistema web de comunicação entre a escola e os respons�
 | Camada    | Stack                                                                                     |
 | --------- | ----------------------------------------------------------------------------------------- |
 | Frontend  | React 19 + Vite 8, JavaScript, React Router 7 (`react-router`), Axios, CSS Modules, lucide-react (ícones), fonte Inter (`@fontsource-variable/inter`) |
-| Backend   | Node.js (ESM, testado no 22), Express 5, `pg`, node-pg-migrate 9 (migrations em SQL), zod |
+| Backend   | Node.js 22.12+ (ESM), Express 5, `pg`, node-pg-migrate 9 (migrations em SQL), zod |
 | Segurança | jsonwebtoken (HS256), bcrypt (custo 12), helmet, cors, express-rate-limit                 |
 | Banco     | PostgreSQL (testado no 17)                                                                |
 | Testes    | `node:test` (nativo) + supertest; ESLint no frontend                                      |
@@ -50,7 +50,7 @@ escola-avisa/
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
         ├── components/      Logo, Button, TextField, Alert, Sidebar, Header, FullScreenStatus
         ├── pages/           LoginPage, DashboardPage, NotFoundPage
-        ├── utils/           tokenStorage, jwt (decode sem validar), formatters
+        ├── utils/           tokenStorage (token + expiresAt), formatters
         └── styles/          global.css (design tokens em variáveis CSS)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
@@ -58,10 +58,10 @@ escola-avisa/
 **Fluxo de uma requisição:** `routes → middlewares (authenticate/authorize/validateBody) → controller → service → repository → PostgreSQL`. Erros sobem para o `errorHandler` central.
 
 **Fluxo de autenticação no frontend:**
-1. `AuthProvider` lê o token do `localStorage`. Se existir e não estiver expirado (campo `exp`), status = `checking` e chama `GET /auth/me`.
+1. `AuthProvider` lê o token e o `expiresAt` do `localStorage`. Se existir e não estiver expirado, status = `checking` e chama `GET /auth/me`.
 2. 200 → `authenticated`. 401 → limpa sessão e vai para `/login` com aviso. Servidor fora → tela "Não foi possível conectar" com "Tentar novamente" (o token **não** é apagado).
 3. Qualquer 401 em outra chamada (interceptor do Axios) encerra a sessão. Exceção: o próprio login (`skipAuthHandler`).
-4. Um timer encerra a sessão no horário exato de expiração do token.
+4. Um timer encerra a sessão quando `expiresAt` chega. `expiresAt` = relógio local no momento do login + `expiresIn` devolvido pelo servidor (nunca o `exp` do JWT — ver Decisões).
 5. Logout/login em outra aba é sincronizado pelo evento `storage`.
 
 ## Banco de dados
@@ -107,7 +107,8 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] `robots.txt` (`Disallow: /`) + `<meta name="robots" content="noindex, nofollow">`
 - [x] Sidebar com todos os módulos futuros (desabilitados com "Em breve"), gaveta em tablet/celular (fecha com Esc/clique fora)
 - [x] Dashboard sem números falsos ("—" + "Em breve"); painel de status com dados reais do `/api/health`
-- [x] **Testes automatizados: 42 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit, constraints do banco
+- [x] **Testes automatizados: 51 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco
+- [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
 - [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular
 - [x] ESLint sem avisos e build de produção do frontend OK
 
@@ -151,7 +152,8 @@ Módulos (cada um precisa de backend + frontend + testes):
 
 Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Logout é só no cliente (JWT stateless). Se precisar invalidar tokens no servidor: tabela de tokens revogados ou campo `token_version` em `usuarios`.
-- [ ] Rate limit em memória: com mais de uma instância do backend, trocar o store (ex.: Redis). Atrás de proxy reverso, configurar `app.set('trust proxy', ...)`.
+- [ ] Rate limit em memória: com mais de uma instância do backend, trocar o store (ex.: Redis). (Atrás de proxy reverso basta configurar `TRUST_PROXY`.)
+- [ ] Achados da revisão de código ainda não aplicados: `migrate:down` sem confirmação; identificadores/arquivos em português x regra "nomes em inglês" do CLAUDE.md do usuário (decidir: exceção registrada ou migração); `catch` vazio em `tokenStorage.get/clear`; estado "deslogado" repetido no `AuthProvider`; 404 repete estilos do `Button`.
 - [ ] Alterar senha / "esqueci minha senha"
 - [ ] Testes automatizados do frontend (Vitest + Testing Library)
 - [ ] Paginação/filtros padrão para as listagens (definir no primeiro CRUD e reutilizar)
@@ -201,4 +203,8 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 21. **Porta do Vite fixa em 5173 (`strictPort`)**, pois precisa bater com `FRONTEND_URL` do CORS.
 22. **Sistema não indexável** (`robots.txt` + meta `noindex`): é privado e lida com dados de menores. Se um dia houver site institucional público, ele deve ser um projeto/rota separado com regras próprias de SEO.
 23. **Checklist de UX usado como referência** (404, CTAs claros, URLs legíveis, breadcrumbs, FAQ, cases, página de obrigado, CTA fixo no mobile, robots.txt). No sistema logado se aplicam: 404, CTAs, URLs, breadcrumbs (a partir da Fase 2) e robots. Cases, obrigado, FAQ e CTA fixo valem apenas para um eventual site público.
-24. **Repositório Git próprio em `escola-avisa/`.** A pasta-mãe (`C:\Users\wills`) também é um repositório Git; o repo aninhado evita misturar históricos.
+24. **Expiração da sessão no frontend usa o relógio local**, nunca o `exp` do JWT: PCs com data/hora errada derrubariam sessões válidas (ou manteriam vencidas). Quem decide se o token vale é sempre o backend.
+25. **Node 22.12+ obrigatório** (`engines` nos dois `package.json`, `.nvmrc`): o `npm test` usa glob no `node --test` (Node 21+) e o Vite 8 exige 20.19+/22.12+.
+26. **`TRUST_PROXY` explícito e `true` proibido**: o rate limit usa `req.ip`; confiar em qualquer `X-Forwarded-For` permitiria burlar o limite forjando o IP.
+27. **Testes fixam suas próprias variáveis** (`tests/setup.js`: rate limit, expiração, proxy) para não dependerem do `.env` de cada desenvolvedor.
+28. **Repositório Git próprio em `escola-avisa/`.** A pasta-mãe (`C:\Users\wills`) também é um repositório Git; o repo aninhado evita misturar históricos.

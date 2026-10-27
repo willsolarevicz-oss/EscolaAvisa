@@ -10,6 +10,8 @@ export function createApp() {
   const app = express();
 
   app.disable('x-powered-by');
+  // Define de onde vem req.ip (usado como chave do rate limit). Ver TRUST_PROXY no .env.example.
+  app.set('trust proxy', env.trustProxy);
   app.use(helmet());
   app.use(
     cors({

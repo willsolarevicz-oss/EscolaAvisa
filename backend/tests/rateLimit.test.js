@@ -43,4 +43,24 @@ describe('Rate limit do login', () => {
     const health = await request(app).get('/api/health');
     assert.equal(health.status, 200);
   });
+
+  it('sem TRUST_PROXY, X-Forwarded-For forjado não escapa do bloqueio', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '203.0.113.10')
+      .send({ email: 'admin@escolaavis.com', senha: 'errada' });
+    assert.equal(res.status, 429);
+  });
+
+  it('com TRUST_PROXY, cada cliente real atrás do proxy tem seu próprio limite', async () => {
+    const behindProxy = createApp();
+    behindProxy.set('trust proxy', 1);
+
+    // O IP local já está bloqueado, mas um cliente diferente (vindo pelo proxy) não deve estar.
+    const res = await request(behindProxy)
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '203.0.113.20')
+      .send({ email: 'admin@escolaavis.com', senha: 'errada' });
+    assert.equal(res.status, 401);
+  });
 });
