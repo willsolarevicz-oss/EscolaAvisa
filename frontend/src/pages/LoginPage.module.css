@@ -1,0 +1,183 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(380px, 5fr) 7fr;
+  min-height: 100vh;
+}
+
+/* Painel institucional (esquerda) */
+.brandPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-10);
+  padding: var(--space-10) clamp(32px, 4vw, 56px);
+  background-color: var(--color-primary-dark);
+  /* Textura sutil de pontos: dá profundidade sem depender de gradiente chamativo. */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: #fff;
+  overflow: hidden;
+}
+
+.brandContent {
+  max-width: 440px;
+}
+
+.brandTitle {
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--space-4);
+}
+
+.brandText {
+  color: #c7d2fe;
+  font-size: 1rem;
+  margin-bottom: var(--space-8);
+}
+
+.highlights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.highlight {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.highlight strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.highlight p {
+  color: #c7d2fe;
+  font-size: 0.875rem;
+}
+
+.highlightIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  color: #bfdbfe;
+}
+
+.brandFooter {
+  color: #a5b4fc;
+  font-size: 0.8125rem;
+}
+
+/* Formulário (direita) */
+.formPanel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  background: var(--color-bg);
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-10) var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.mobileLogo {
+  display: none;
+}
+
+.formHeader {
+  margin-bottom: var(--space-6);
+}
+
+.formTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.formSubtitle {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.togglePassword {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.togglePassword:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.help {
+  margin-top: var(--space-6);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+/* Tablet e celular: painel institucional some, logo vai para o topo do card. */
+@media (max-width: 960px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .brandPanel {
+    display: none;
+  }
+
+  .mobileLogo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .formHeader {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .formPanel {
+    align-items: flex-start;
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .formWrapper {
+    padding: var(--space-8) var(--space-5);
+  }
+}

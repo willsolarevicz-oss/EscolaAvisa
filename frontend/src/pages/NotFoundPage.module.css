@@ -1,0 +1,81 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.standalone {
+  min-height: 100vh;
+  padding: var(--space-6) var(--space-4);
+}
+
+/* Dentro do layout: ocupa a área de conteúdo, sem repetir a logo (já está na sidebar). */
+.inLayout {
+  min-height: calc(100vh - var(--header-height) - 2 * var(--space-8));
+}
+
+.code {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.standalone .code {
+  margin-top: var(--space-8);
+}
+
+.title {
+  margin-top: var(--space-3);
+  font-size: 1.4rem;
+}
+
+.text {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition:
+    background-color var(--transition),
+    border-color var(--transition);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.primary:hover {
+  background: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+.secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.secondary:hover {
+  background: var(--color-surface-muted);
+}

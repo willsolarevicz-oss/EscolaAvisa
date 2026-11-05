@@ -1,0 +1,183 @@
+/* Grade de lançamento e boletim. Tabelas com rolagem horizontal própria no celular
+   (é uma planilha: transformar em cartões esconderia a comparação entre bimestres). */
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--color-surface);
+  z-index: 1;
+}
+
+.table th:first-child {
+  background: var(--color-bg);
+}
+
+/* Cabeçalho de linha (nome do aluno/disciplina): visual de célula, não de cabeçalho. */
+.table tbody th:first-child {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+}
+
+.table tbody tr:last-child th:first-child {
+  border-bottom: 0;
+}
+
+.table td {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-surface-muted);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 160px;
+}
+
+.name span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.cell {
+  width: 64px;
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background-color var(--transition);
+}
+
+.cell:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
+}
+
+/* Alterada e ainda não salva. */
+.dirty {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+}
+
+.invalid,
+.invalid:focus {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.status {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.statusDirty {
+  color: var(--color-warning-text);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+@media (max-width: 480px) {
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+}
+
+/* Lista de turmas para lançamento */
+.turmas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.turmaCard {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.turmaCard h3 {
+  font-size: 1.05rem;
+}
+
+.turmaCard p {
+  margin: 2px 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.disciplinas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

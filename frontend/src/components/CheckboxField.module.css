@@ -1,0 +1,29 @@
+.field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}

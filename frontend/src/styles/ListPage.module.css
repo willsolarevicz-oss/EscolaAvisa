@@ -1,0 +1,257 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 200px 200px auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Listagens com mais filtros (busca + 3 selects). */
+.filtersWide {
+  grid-template-columns: minmax(200px, 1fr) 160px 170px 180px auto;
+}
+
+/* Listagens com menos filtros (busca + situação). */
+.filtersCompact {
+  grid-template-columns: minmax(220px, 1fr) 200px auto;
+}
+
+.feedback {
+  padding: var(--space-4) var(--space-5) 0;
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.tableWrap {
+  position: relative;
+  overflow-x: auto;
+  transition: opacity var(--transition);
+}
+
+/* Mantém os dados anteriores visíveis (mais suave) enquanto a nova página carrega. */
+.loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-surface-muted);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: #fbfdff;
+}
+
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.userName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.userEmail {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.selfTag {
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.actionsCell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Alinhado à esquerda: o lápis fica na mesma coluna mesmo quando não há botão de desativar. */
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.empty {
+  padding: var(--space-10) var(--space-5);
+  text-align: center;
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-subtle);
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-10) var(--space-5);
+  color: var(--color-text-muted);
+}
+
+/* Coluna secundária: sai primeiro quando falta espaço, para as ações nunca ficarem fora da tela. */
+@media (max-width: 1100px) {
+  .optionalColumn {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+}
+
+/* Tablet em pé e celular: cada linha da tabela vira um cartão. */
+@media (max-width: 768px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  /* Rótulo de cada campo, vindo do data-label. */
+  /* A primeira coluna é o "título" do cartão (nome); as demais mostram o rótulo à esquerda. */
+  .table td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .table td:first-child {
+    margin-bottom: var(--space-2);
+  }
+
+  .actionsCell {
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+
+  .rowActions {
+    width: 100%;
+  }
+}
