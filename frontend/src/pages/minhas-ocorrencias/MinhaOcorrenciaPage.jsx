@@ -12,6 +12,7 @@ import { getMinhaOcorrencia, registrarCiencia } from '../../services/ocorrenciaS
 import { formatDateOnly, formatDateTime, tipoOcorrencia } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
 import styles from '../../styles/Comunicado.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 /**
  * Ocorrência vista pelo responsável. A ciência é um clique explícito em "Estou ciente"
@@ -26,7 +27,7 @@ export function MinhaOcorrenciaPage() {
 
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Minhas ocorrências', to: '/minhas-ocorrencias' },
+    { label: 'Minhas ocorrências', to: urlDaLista('/minhas-ocorrencias') },
     { label: ocorrencia ? ocorrencia.alunoNome : 'Ocorrência' },
   ];
 
@@ -56,7 +57,7 @@ export function MinhaOcorrenciaPage() {
               {loader.status === 'notfound' ? 'Ocorrência não encontrada ou não está mais disponível.' : loader.errorMessage}
             </Alert>
             <div className={formStyles.formActions}>
-              <Button to="/minhas-ocorrencias" icon={ArrowLeft}>
+              <Button to={urlDaLista('/minhas-ocorrencias')} icon={ArrowLeft}>
                 Voltar para minhas ocorrências
               </Button>
             </div>
@@ -97,7 +98,7 @@ export function MinhaOcorrenciaPage() {
       </section>
 
       <div className={formStyles.formActions}>
-        <Button variant="secondary" to="/minhas-ocorrencias" icon={ArrowLeft}>
+        <Button variant="secondary" to={urlDaLista('/minhas-ocorrencias')} icon={ArrowLeft}>
           Voltar
         </Button>
         {ocorrencia.ciente ? (

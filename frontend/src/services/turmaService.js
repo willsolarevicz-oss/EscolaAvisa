@@ -50,3 +50,9 @@ export async function atribuirProfessor(turmaId, payload) {
 export async function removerAtribuicao(turmaId, atribuicaoId) {
   await api.delete(`/turmas/${turmaId}/professores/${atribuicaoId}`);
 }
+
+/** Professor ("Minhas turmas"): { turma, alunos: [{ id, nome, matricula, responsaveisAutorizados }] } */
+export async function listAlunosDaMinhaTurma(turmaId, { signal } = {}) {
+  const { data } = await api.get(`/me/turmas/${turmaId}/alunos`, { signal });
+  return data.data;
+}

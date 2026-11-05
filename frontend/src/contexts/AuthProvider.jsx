@@ -14,20 +14,18 @@ function isUsableToken(token, expiresAt) {
   return expiresAt === null || expiresAt > Date.now();
 }
 
+/** Estado "sem sessão" (um lugar só: abertura da página, logout/expiração e logout em outra aba). */
+function loggedOutState(notice = null) {
+  return { status: AUTH_STATUS.UNAUTHENTICATED, user: null, token: null, expiresAt: null, notice, errorMessage: null };
+}
+
 function getInitialState() {
   const token = tokenStorage.get();
   const expiresAt = tokenStorage.getExpiresAt();
   if (isUsableToken(token, expiresAt)) {
     return { status: AUTH_STATUS.CHECKING, user: null, token, expiresAt, notice: null, errorMessage: null };
   }
-  return {
-    status: AUTH_STATUS.UNAUTHENTICATED,
-    user: null,
-    token: null,
-    expiresAt: null,
-    notice: token ? { type: 'warning', message: EXPIRED_MESSAGE } : null,
-    errorMessage: null,
-  };
+  return loggedOutState(token ? { type: 'warning', message: EXPIRED_MESSAGE } : null);
 }
 
 export function AuthProvider({ children }) {
@@ -35,14 +33,7 @@ export function AuthProvider({ children }) {
 
   const clearSession = useCallback((notice = null) => {
     tokenStorage.clear();
-    setState({
-      status: AUTH_STATUS.UNAUTHENTICATED,
-      user: null,
-      token: null,
-      expiresAt: null,
-      notice,
-      errorMessage: null,
-    });
+    setState(loggedOutState(notice));
   }, []);
 
   // Remove do navegador um token salvo que já estava expirado ao abrir a página.
@@ -105,14 +96,7 @@ export function AuthProvider({ children }) {
       if (event.key !== TOKEN_STORAGE_KEY && event.key !== null) return;
       const token = tokenStorage.get();
       if (!token) {
-        setState({
-          status: AUTH_STATUS.UNAUTHENTICATED,
-          user: null,
-          token: null,
-          expiresAt: null,
-          notice: null,
-          errorMessage: null,
-        });
+        setState(loggedOutState());
       } else {
         const expiresAt = tokenStorage.getExpiresAt();
         setState((prev) =>

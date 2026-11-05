@@ -1,6 +1,6 @@
 import { pool } from '../database/pool.js';
 import { responsaveisAutorizadosSql } from '../database/responsaveisAutorizados.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // Aviso + nomes (autor, turma, aluno) + contagem de destinatários e de leituras.
 const SELECT_AVISO = `
@@ -28,7 +28,7 @@ export async function list({ page, pageSize, busca, publico, ativo, autorId }) {
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`av.titulo ILIKE $${params.length}`);
+    conditions.push(buscaSemAcento(['av.titulo'], `$${params.length}`));
   }
   if (publico) {
     params.push(publico);

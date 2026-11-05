@@ -4,7 +4,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 12 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** e **relatórios** (leitura de avisos, ocorrências e notas).
+> **Status:** Fases 1 a 13 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) e **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -116,7 +116,7 @@ As tabelas são criadas por migrations SQL em `backend/migrations/` (biblioteca 
 
 ```bash
 npm run migrate                       # aplica todas as pendentes
-npm run migrate:down                  # desfaz a última
+npm run migrate:down                  # desfaz a última (pede para digitar "sim"; em script use: npm run migrate:down -- --yes)
 npm run migrate:create -- nome-da-mudanca   # cria um novo arquivo .sql
 ```
 
@@ -199,6 +199,7 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/me/avisos/:id` | RESPONSAVEL | Um aviso recebido                                 |
 | POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura                  |
 | GET    | `/api/me/turmas`   | PROFESSOR     | Turmas em que o professor leciona                 |
+| GET    | `/api/me/turmas/:turmaId/alunos` | PROFESSOR | Alunos da turma (e se a família pode receber comunicações) |
 | GET/POST | `/api/ocorrencias` | ADMIN, PROFESSOR | Lista (com contagem de ciências) / registra (`alunoId`, `tipo`, `descricao`, `dataOcorrencia`) |
 | GET    | `/api/ocorrencias/:id` | ADMIN, PROFESSOR | Detalhe com quem deu ciência                 |
 | PATCH  | `/api/ocorrencias/:id/ativo` | ADMIN, PROFESSOR | Arquivar / reativar                    |
@@ -235,7 +236,7 @@ Erros seguem o formato `{ "success": false, "message": "..." }`.
 | `npm run dev`             | Inicia a API com reinício automático ao salvar (`node --watch`)  |
 | `npm start`               | Inicia a API (modo normal)                                       |
 | `npm run migrate`         | Aplica as migrations pendentes                                   |
-| `npm run migrate:down`    | Desfaz a última migration                                        |
+| `npm run migrate:down`    | Desfaz a última migration (pede confirmação; `-- --yes` em script) |
 | `npm run migrate:create`  | Cria um novo arquivo de migration SQL                            |
 | `npm run seed`            | Cria o administrador inicial                                     |
 | `npm test`                | Testes automatizados (usa `TEST_DATABASE_URL`, recria o banco de teste) |

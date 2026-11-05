@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // Contagens para a listagem: alunos com matrícula ATIVA e professores distintos.
 const SELECT_TURMA = `
@@ -21,7 +21,7 @@ export async function list({ page, pageSize, busca, anoLetivo, turno, ativo }) {
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`t.nome ILIKE $${params.length}`);
+    conditions.push(buscaSemAcento(['t.nome'], `$${params.length}`));
   }
   if (anoLetivo !== undefined) {
     params.push(anoLetivo);

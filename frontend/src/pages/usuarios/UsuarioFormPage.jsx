@@ -18,6 +18,7 @@ import {
 } from '../../services/usuarioService';
 import { maskCpf, maskTelefone, ROLE_OPTIONS, roleLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TIPO_OPTIONS = [{ value: '', label: 'Selecione o perfil' }, ...ROLE_OPTIONS];
@@ -188,7 +189,7 @@ export function UsuarioFormPage() {
   const title = isEdit ? 'Editar usuário' : 'Novo usuário';
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Usuários', to: '/usuarios' },
+    { label: 'Usuários', to: urlDaLista('/usuarios') },
     { label: title },
   ];
 
@@ -223,7 +224,7 @@ export function UsuarioFormPage() {
         ? await updateUsuario(id, base)
         : await createUsuario({ ...base, tipoUsuario: form.tipoUsuario, senha: form.senha });
 
-      navigate('/usuarios', {
+      navigate(urlDaLista('/usuarios'), {
         state: {
           flash: {
             type: 'success',
@@ -260,7 +261,7 @@ export function UsuarioFormPage() {
               Tentar novamente
             </Button>
           )}
-          <Button to="/usuarios" icon={ArrowLeft}>
+          <Button to={urlDaLista('/usuarios')} icon={ArrowLeft}>
             Voltar para usuários
           </Button>
         </div>
@@ -403,7 +404,7 @@ export function UsuarioFormPage() {
           )}
 
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/usuarios">
+            <Button variant="secondary" to={urlDaLista('/usuarios')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Save} loading={saving} loadingText="Salvando...">

@@ -15,6 +15,7 @@ import { todayIso, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import { AlunoOcorrenciasSection } from './AlunoOcorrenciasSection';
 import { AlunoResponsaveisSection } from './AlunoResponsaveisSection';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const MATRICULA_REGEX = /^[A-Za-z0-9./-]+$/;
 const EMPTY_FORM = { nome: '', matricula: '', dataNascimento: '' };
@@ -72,7 +73,7 @@ export function AlunoFormPage() {
   const title = isEdit ? 'Editar aluno' : 'Novo aluno';
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Alunos', to: '/alunos' },
+    { label: 'Alunos', to: urlDaLista('/alunos') },
     { label: title },
   ];
 
@@ -102,7 +103,7 @@ export function AlunoFormPage() {
     try {
       if (isEdit) {
         const saved = await updateAluno(id, payload);
-        navigate('/alunos', { state: { flash: { type: 'success', message: `Dados de ${saved.nome} atualizados.` } } });
+        navigate(urlDaLista('/alunos'), { state: { flash: { type: 'success', message: `Dados de ${saved.nome} atualizados.` } } });
       } else {
         // Depois de cadastrar, vai para a edição: é lá que se vinculam os responsáveis.
         const saved = await createAluno(payload);
@@ -137,7 +138,7 @@ export function AlunoFormPage() {
               Tentar novamente
             </Button>
           )}
-          <Button to="/alunos" icon={ArrowLeft}>
+          <Button to={urlDaLista('/alunos')} icon={ArrowLeft}>
             Voltar para alunos
           </Button>
         </div>
@@ -217,7 +218,7 @@ export function AlunoFormPage() {
           </div>
 
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/alunos">
+            <Button variant="secondary" to={urlDaLista('/alunos')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Save} loading={saving} loadingText="Salvando...">

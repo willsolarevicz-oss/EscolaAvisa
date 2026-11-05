@@ -1,5 +1,5 @@
 import { ArrowLeft, LayoutDashboard, LogIn } from 'lucide-react';
-import { Link } from 'react-router';
+import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../hooks/useAuth';
 import styles from './NotFoundPage.module.css';
@@ -11,7 +11,6 @@ export function NotFoundPage() {
   const home = isAuthenticated
     ? { to: '/dashboard', label: 'Voltar ao dashboard', icon: LayoutDashboard }
     : { to: '/login', label: 'Ir para o login', icon: LogIn };
-  const HomeIcon = home.icon;
 
   return (
     <div className={`${styles.page} ${isAuthenticated ? styles.inLayout : styles.standalone}`}>
@@ -20,16 +19,15 @@ export function NotFoundPage() {
       <h1 className={styles.title}>Página não encontrada</h1>
       <p className={styles.text}>O endereço acessado não existe ou foi movido.</p>
       <div className={styles.actions}>
-        <Link to={home.to} replace className={styles.primary}>
-          <HomeIcon size={18} aria-hidden="true" />
+        {/* Button com `to` vira um Link; `replace` não deixa a URL quebrada no histórico. */}
+        <Button to={home.to} replace icon={home.icon}>
           {home.label}
-        </Link>
+        </Button>
         {/* Só oferece "voltar" se houver histórico dentro do próprio site. */}
         {window.history.state?.idx > 0 && (
-          <button type="button" className={styles.secondary} onClick={() => window.history.back()}>
-            <ArrowLeft size={18} aria-hidden="true" />
+          <Button variant="secondary" icon={ArrowLeft} onClick={() => window.history.back()}>
             Página anterior
-          </button>
+          </Button>
         )}
       </div>
     </div>

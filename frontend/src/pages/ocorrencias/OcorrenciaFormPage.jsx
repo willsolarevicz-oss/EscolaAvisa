@@ -1,6 +1,6 @@
 import { CalendarDays, Save } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
@@ -17,6 +17,8 @@ import { toFieldErrors } from '../../utils/apiErrors';
 import { TIPO_OCORRENCIA_OPTIONS, todayIso } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import relationStyles from '../../styles/RelationSection.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
+import { alunoDaNavegacao } from '../../utils/navegacao';
 
 const TIPO_SELECT_OPTIONS = [{ value: '', label: 'Selecione o tipo' }, ...TIPO_OCORRENCIA_OPTIONS];
 
@@ -40,8 +42,15 @@ export function OcorrenciaFormPage() {
   const isProfessor = user.tipoUsuario === 'PROFESSOR';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
-  const [form, setForm] = useState({ aluno: null, tipo: '', descricao: '', dataOcorrencia: todayIso() });
+  // Vindo de "Minhas turmas" (professor), o aluno chega na navegação, já escolhido.
+  const [form, setForm] = useState(() => ({
+    aluno: alunoDaNavegacao(location.state),
+    tipo: '',
+    descricao: '',
+    dataOcorrencia: todayIso(),
+  }));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -88,7 +97,7 @@ export function OcorrenciaFormPage() {
         description="Depois de registrada, a ocorrência não pode ser editada (pode ser arquivada)."
         breadcrumbs={[
           { label: 'Dashboard', to: '/dashboard' },
-          { label: 'Ocorrências', to: '/ocorrencias' },
+          { label: 'Ocorrências', to: urlDaLista('/ocorrencias') },
           { label: 'Registrar' },
         ]}
       />
@@ -171,7 +180,7 @@ export function OcorrenciaFormPage() {
           </p>
 
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/ocorrencias">
+            <Button variant="secondary" to={urlDaLista('/ocorrencias')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Save} loading={saving} loadingText="Registrando...">

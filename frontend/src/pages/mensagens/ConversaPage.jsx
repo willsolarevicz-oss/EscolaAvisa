@@ -15,6 +15,7 @@ import { formatDateTime } from '../../utils/formatters';
 import { canalLabel, outroLado } from '../../utils/mensagens';
 import listStyles from '../../styles/ListPage.module.css';
 import styles from '../../styles/Mensagens.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const MAX_CONTEUDO = 5000;
 
@@ -77,7 +78,7 @@ export function ConversaPage() {
 
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Mensagens', to: '/mensagens' },
+    { label: 'Mensagens', to: urlDaLista('/mensagens') },
     { label: conversa?.assunto ?? 'Conversa' },
   ];
 
@@ -91,7 +92,7 @@ export function ConversaPage() {
           <>
             <Alert type="error">{loader.status === 'notfound' ? 'Conversa não encontrada.' : loader.errorMessage}</Alert>
             <div>
-              <Button to="/mensagens" icon={ArrowLeft}>
+              <Button to={urlDaLista('/mensagens')} icon={ArrowLeft}>
                 Voltar para mensagens
               </Button>
             </div>

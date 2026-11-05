@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // Colunas públicas: senha_hash fica de fora para não vazar por engano.
 const PUBLIC_COLUMNS = 'id, nome, email, tipo_usuario, ativo, criado_em, atualizado_em';
@@ -30,7 +30,7 @@ export async function list({ page, pageSize, busca, tipoUsuario, ativo }) {
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`(nome ILIKE $${params.length} OR email ILIKE $${params.length})`);
+    conditions.push(buscaSemAcento(['nome', 'email'], `$${params.length}`));
   }
   if (tipoUsuario) {
     params.push(tipoUsuario);

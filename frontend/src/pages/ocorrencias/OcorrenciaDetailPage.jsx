@@ -15,6 +15,7 @@ import { getOcorrencia, setOcorrenciaAtivo } from '../../services/ocorrenciaServ
 import { formatDateOnly, formatDateTime, tipoOcorrencia, VERBO_CIENCIA } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
 import styles from '../../styles/Comunicado.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 export function OcorrenciaDetailPage() {
   const { id } = useParams();
@@ -28,7 +29,7 @@ export function OcorrenciaDetailPage() {
 
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Ocorrências', to: urlDaLista('/ocorrencias') },
     { label: ocorrencia ? `${tipoOcorrencia(ocorrencia.tipo).label} — ${ocorrencia.aluno.nome}` : 'Ocorrência' },
   ];
 
@@ -59,7 +60,7 @@ export function OcorrenciaDetailPage() {
           <>
             <Alert type="error">{loader.status === 'notfound' ? 'Ocorrência não encontrada.' : loader.errorMessage}</Alert>
             <div className={formStyles.formActions}>
-              <Button to="/ocorrencias" icon={ArrowLeft}>
+              <Button to={urlDaLista('/ocorrencias')} icon={ArrowLeft}>
                 Voltar para ocorrências
               </Button>
             </div>

@@ -14,6 +14,7 @@ import { getAviso, setAvisoAtivo } from '../../services/avisoService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
 import styles from '../../styles/Comunicado.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const FILTROS = [
   { value: 'todos', label: 'Todos' },
@@ -33,7 +34,7 @@ export function AvisoDetailPage() {
 
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Avisos', to: '/avisos' },
+    { label: 'Avisos', to: urlDaLista('/avisos') },
     { label: aviso?.titulo ?? 'Aviso' },
   ];
 
@@ -70,7 +71,7 @@ export function AvisoDetailPage() {
                   Tentar novamente
                 </Button>
               )}
-              <Button to="/avisos" icon={ArrowLeft}>
+              <Button to={urlDaLista('/avisos')} icon={ArrowLeft}>
                 Voltar para avisos
               </Button>
             </div>

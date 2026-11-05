@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 const COLUMNS = 'id, nome, descricao, ativo, criado_em, atualizado_em';
 
@@ -15,7 +15,7 @@ export async function list({ page, pageSize, busca, ativo }) {
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`nome ILIKE $${params.length}`);
+    conditions.push(buscaSemAcento(['nome'], `$${params.length}`));
   }
   if (ativo !== undefined) {
     params.push(ativo);

@@ -1,0 +1,36 @@
+/* "Minhas turmas" do professor (os cartões de turma vêm de Notas.module.css). */
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-surface-muted);
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personText span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.empty {
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-text-muted);
+}
