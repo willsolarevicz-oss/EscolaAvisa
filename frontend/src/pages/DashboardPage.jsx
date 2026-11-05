@@ -8,6 +8,7 @@ import {
   School,
   Server,
 } from 'lucide-react';
+import { Badge } from '../components/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
@@ -27,10 +28,6 @@ const HEALTH_LABELS = {
   degraded: { text: 'Indisponível', tone: 'danger' },
   offline: { text: 'Sem resposta', tone: 'danger' },
 };
-
-function StatusBadge({ tone, children }) {
-  return <span className={`${styles.badge} ${styles[`badge_${tone}`]}`}>{children}</span>;
-}
 
 function SystemStatus() {
   const health = useApiHealth();
@@ -58,13 +55,13 @@ function SystemStatus() {
           <span className={styles.statusLabel}>
             <Server size={16} aria-hidden="true" /> API
           </span>
-          <StatusBadge tone={apiStatus.tone}>{apiStatus.text}</StatusBadge>
+          <Badge tone={apiStatus.tone}>{apiStatus.text}</Badge>
         </li>
         <li>
           <span className={styles.statusLabel}>
             <Database size={16} aria-hidden="true" /> Banco de dados
           </span>
-          <StatusBadge tone={dbStatus.tone}>{dbStatus.text}</StatusBadge>
+          <Badge tone={dbStatus.tone}>{dbStatus.text}</Badge>
         </li>
       </ul>
       {health.data?.timestamp && (
@@ -88,7 +85,7 @@ export function DashboardPage() {
             {formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <StatusBadge tone="primary">{roleLabel(user.tipoUsuario)}</StatusBadge>
+        <Badge tone="primary">{roleLabel(user.tipoUsuario)}</Badge>
       </section>
 
       <div className={styles.notice} role="note">
@@ -140,7 +137,7 @@ export function DashboardPage() {
             <div>
               <dt>Situação</dt>
               <dd>
-                <StatusBadge tone={user.ativo ? 'success' : 'danger'}>{user.ativo ? 'Ativo' : 'Inativo'}</StatusBadge>
+                <Badge tone={user.ativo ? 'success' : 'danger'}>{user.ativo ? 'Ativo' : 'Inativo'}</Badge>
               </dd>
             </div>
             <div>

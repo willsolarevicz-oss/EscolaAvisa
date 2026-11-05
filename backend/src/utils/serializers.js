@@ -10,3 +10,18 @@ export function toUsuarioResponse(usuario) {
     atualizadoEm: usuario.atualizado_em,
   };
 }
+
+/**
+ * Usuário com os dados de responsável (telefone/CPF) quando o perfil for RESPONSAVEL.
+ * Usado pela gestão de usuários; o /auth/me continua com o formato enxuto.
+ */
+export function toUsuarioDetailResponse(usuario, responsavel) {
+  const response = toUsuarioResponse(usuario);
+  if (usuario.tipo_usuario === 'RESPONSAVEL') {
+    response.responsavel = {
+      telefone: responsavel?.telefone ?? null,
+      cpf: responsavel?.cpf ?? null,
+    };
+  }
+  return response;
+}

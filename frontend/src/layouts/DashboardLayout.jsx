@@ -1,17 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
+import { findNavItemByPath } from '../config/navigation';
 import { useAuth } from '../hooks/useAuth';
 import styles from './DashboardLayout.module.css';
 
 const SIDEBAR_ID = 'app-sidebar';
 
-/** Layout das páginas autenticadas. `title` aparece no header. */
-export function DashboardLayout({ title = 'Dashboard' }) {
+/**
+ * Layout das páginas autenticadas. O título do header é o módulo atual da sidebar
+ * (ex.: /usuarios/novo → "Usuários"); `title` força um título fixo (ex.: 404).
+ */
+export function DashboardLayout({ title }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const headerTitle = title ?? findNavItemByPath(pathname)?.label ?? 'EscolaAvis';
 
   // Esc fecha a gaveta no celular/tablet.
   useEffect(() => {
@@ -38,7 +44,7 @@ export function DashboardLayout({ title = 'Dashboard' }) {
       />
       <div className={styles.main}>
         <Header
-          title={title}
+          title={headerTitle}
           user={user}
           sidebarId={SIDEBAR_ID}
           menuOpen={sidebarOpen}

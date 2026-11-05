@@ -61,6 +61,28 @@
   color: var(--color-text-subtle);
 }
 
+.input:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-muted);
+}
+
+/* Select: remove a seta nativa (usamos o ícone ChevronDown, mais consistente entre navegadores). */
+.select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: var(--space-2);
+}
+
+/* Clicar na seta deve abrir o select, não ser capturado pelo ícone. */
+.select + .icon {
+  pointer-events: none;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
 .error {
   font-size: 0.8125rem;
   color: var(--color-danger);

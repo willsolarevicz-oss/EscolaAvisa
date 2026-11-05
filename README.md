@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fase 1 concluída — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil e base do frontend.
+> **Status:** Fases 1 e 2 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend e gestão de usuários (ADMIN).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -165,6 +165,12 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | POST   | `/api/auth/login`  | público (rate limit) | Login: `{ "email", "senha" }` → token JWT + usuário |
 | GET    | `/api/auth/me`     | autenticado   | Dados do usuário logado                         |
 | GET    | `/api/admin/ping`  | somente ADMIN | Verificação do controle de acesso (RBAC)        |
+| GET    | `/api/usuarios`    | somente ADMIN | Lista paginada (`page`, `pageSize`, `busca`, `tipo`, `ativo`) |
+| POST   | `/api/usuarios`    | somente ADMIN | Cria usuário (responsável pode ter telefone/CPF) |
+| GET    | `/api/usuarios/:id` | somente ADMIN | Detalhe do usuário                             |
+| PUT    | `/api/usuarios/:id` | somente ADMIN | Edita nome, e-mail, telefone/CPF (perfil é imutável) |
+| PATCH  | `/api/usuarios/:id/ativo` | somente ADMIN | Ativa/desativa (`{ "ativo": true/false }`) |
+| PATCH  | `/api/usuarios/:id/senha` | somente ADMIN | Redefine a senha (8+ caracteres, letra e número) |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

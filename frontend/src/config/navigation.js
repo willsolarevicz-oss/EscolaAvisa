@@ -44,6 +44,16 @@ export const NAVIGATION = [
   {
     title: 'Administração',
     roles: ['ADMIN'],
-    items: [{ label: 'Usuários', icon: UserCog, available: false }],
+    items: [{ label: 'Usuários', to: '/usuarios', icon: UserCog, available: true }],
   },
 ];
+
+/** Item da sidebar correspondente à URL (inclui subpáginas: /usuarios/novo → Usuários). */
+export function findNavItemByPath(pathname) {
+  for (const section of NAVIGATION) {
+    for (const item of section.items) {
+      if (item.to && (pathname === item.to || pathname.startsWith(`${item.to}/`))) return item;
+    }
+  }
+  return null;
+}

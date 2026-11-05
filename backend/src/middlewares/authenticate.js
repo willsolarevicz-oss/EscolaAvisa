@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import * as usuarioRepository from '../repositories/usuarioRepository.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../utils/uuid.js';
 
 function extractBearerToken(header) {
   if (!header) return null;
@@ -33,7 +32,7 @@ export async function authenticate(req, _res, next) {
   }
 
   // Evita erro do PostgreSQL ao comparar um "sub" que não é UUID.
-  if (typeof payload.sub !== 'string' || !UUID_REGEX.test(payload.sub)) {
+  if (!isUuid(payload.sub)) {
     return next(AppError.unauthorized('Sessão inválida. Faça login novamente.'));
   }
 

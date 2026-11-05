@@ -65,3 +65,24 @@
   background: var(--color-surface-muted);
   color: var(--color-text);
 }
+
+.danger {
+  background: var(--color-surface);
+  border-color: #fecaca;
+  color: var(--color-danger);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--color-danger-soft);
+}
+
+/* Versão link (prop `to`): sem sublinhado, como os botões. */
+a.button:hover {
+  text-decoration: none;
+}
+
+/* Botão só com ícone (sem texto): quadrado. */
+.sm:not(:has(span)) {
+  width: 36px;
+  padding: 0;
+}
