@@ -8,7 +8,7 @@ function canSee(roles, tipoUsuario) {
   return !roles || roles.includes(tipoUsuario);
 }
 
-export function Sidebar({ id, open, onClose, tipoUsuario }) {
+export function Sidebar({ id, open, onClose, tipoUsuario, contadores = {} }) {
   const sections = NAVIGATION.filter((section) => canSee(section.roles, tipoUsuario));
 
   return (
@@ -31,7 +31,7 @@ export function Sidebar({ id, open, onClose, tipoUsuario }) {
               <ul className={styles.list}>
                 {section.items
                   .filter((item) => canSee(item.roles, tipoUsuario))
-                  .map(({ label, to, icon: Icon, available }) => (
+                  .map(({ label, to, icon: Icon, available, counter }) => (
                     <li key={label}>
                       {available ? (
                         <NavLink
@@ -41,6 +41,12 @@ export function Sidebar({ id, open, onClose, tipoUsuario }) {
                         >
                           <Icon size={18} aria-hidden="true" />
                           <span>{label}</span>
+                          {contadores[counter] > 0 && (
+                            <span className={styles.counter}>
+                              {contadores[counter] > 99 ? '99+' : contadores[counter]}
+                              <span className="visually-hidden"> pendentes</span>
+                            </span>
+                          )}
                         </NavLink>
                       ) : (
                         // Módulo ainda não implementado: visível (mostra o roadmap), mas desabilitado.
@@ -61,7 +67,7 @@ export function Sidebar({ id, open, onClose, tipoUsuario }) {
           ))}
         </nav>
 
-        <p className={styles.footer}>Versão 0.9 · Fase 9</p>
+        <p className={styles.footer}>Versão 1.0 · Fase 10</p>
       </aside>
     </>
   );

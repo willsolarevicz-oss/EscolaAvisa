@@ -4,11 +4,13 @@ import * as eventoController from '../controllers/eventoController.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { authorize } from '../middlewares/authorize.js';
 import { validateBody, validateQuery } from '../middlewares/validate.js';
-import { calendarioQuerySchema, eventoSchema } from '../validators/eventoValidators.js';
+import { calendarioQuerySchema, eventoSchema, proximosQuerySchema } from '../validators/eventoValidators.js';
 
 /** GET /api/calendario?mes=AAAA-MM — todos os perfis (cada um vê o que lhe diz respeito). */
 export const calendarioRoutes = Router();
 calendarioRoutes.get('/', authenticate, validateQuery(calendarioQuerySchema), eventoController.calendario);
+/** GET /api/calendario/proximos?limite=5 — próximos eventos + próximo feriado (dashboard). */
+calendarioRoutes.get('/proximos', authenticate, validateQuery(proximosQuerySchema), eventoController.proximos);
 
 /** /api/eventos — quem cria e mantém o calendário (professor: só os próprios, ver service). */
 export const eventoRoutes = Router();

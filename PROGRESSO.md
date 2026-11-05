@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 9 (mensagens entre responsáveis e escola). Branch: `feat/fase-9-mensagens`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–8 já na `main` via PRs #1 e #2; cada fase nova entra por PR).
+> Última atualização: 2026-11-05 — fim da Fase 10 (dashboard com indicadores reais e contadores na sidebar). Branch: `feat/fase-10-dashboard`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–9 já na `main` via PRs #1 a #3; cada fase nova entra por PR).
 
 ---
 
@@ -52,17 +52,19 @@ escola-avisa/
         │                    filtros na URL), useFlashMessage (mensagem entre páginas), useAtivoToggle
         │                    (confirmar + ativar/desativar em listagens), useEntityLoader (carregar registro
         │                    por id: loading/notfound/error/reload — usado em todos os formulários e detalhes),
-        │                    useTurmasDisponiveis (turmas que o usuário pode escolher: avisos e eventos)
+        │                    useTurmasDisponiveis (turmas que o usuário pode escolher: avisos e eventos),
+        │                    useContadores (números da sidebar: troca de página, 60 s e evento "algo foi lido")
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
-        │                    notaService, eventoService, conversaService
+        │                    notaService, eventoService, conversaService, contadorService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
         ├── components/      Logo, Button (aceita `to`), TextField, SelectField, Alert, Badge, PageHeader
         │                    (título + breadcrumbs), Pagination, ConfirmDialog (<dialog>), CheckboxField, SearchPicker
         │                    (buscar e selecionar), RowActions (editar/ativar/desativar), TextAreaField, ReadProgress
-        │                    ("X de Y leram"), Sidebar, Header, FullScreenStatus
+        │                    ("X de Y leram"), Sidebar (com contadores), Header (ponto de "novo" no menu),
+        │                    FullScreenStatus, ProximosEventos (painel do dashboard)
         ├── pages/           LoginPage, DashboardPage, NotFoundPage, ForbiddenPage,
         │                    usuarios/ (UsuariosListPage, UsuarioFormPage — criar e editar),
         │                    alunos/ (AlunosListPage, AlunoFormPage, AlunoResponsaveisSection),
@@ -172,9 +174,11 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] **Calendário (Fase 8)**: grade mensal + lista "Neste mês", navegação entre meses (mês fica na URL), destaque de hoje; no celular a grade vira marcadores coloridos e os detalhes ficam na lista. ADMIN cria eventos da escola toda ou de qualquer turma; PROFESSOR só para turmas em que leciona e só edita/exclui os próprios; RESPONSAVEL vê escola toda + turmas dos seus alunos (vínculo autorizado). Exclusão com confirmação
 - [x] **Integração BrasilAPI (feriados nacionais)**: chamada pelo backend (`feriadoService`), timeout de 3 s, cache em memória por ano (24 h; falha fica 60 s em espera), resposta validada; se cair, o calendário mostra os eventos e um aviso "feriados indisponíveis". Configurável por `BRASILAPI_URL`/`BRASILAPI_TIMEOUT_MS`; os testes nunca acessam a internet (fetch simulado)
 - [x] **Mensagens (Fase 9)**: conversas sempre sobre um aluno, em dois canais: SECRETARIA (qualquer ADMIN atende) e PROFESSOR (privada entre o responsável e aquele professor). Responsável inicia com a secretaria ou com professor que dá aula para o filho; professor inicia com responsável de aluno das turmas dele; ADMIN inicia pela secretaria com qualquer aluno ativo. Só responsáveis **autorizados**. Lista com "N novas" e filtro "Não lidas", conversa em balões (quebras de linha mantidas), "Lida" nas minhas mensagens, Ctrl+Enter envia, botão Atualizar (sem tempo real)
-- [x] **Testes automatizados: 175 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação)
+- [x] **Dashboard com dados reais (Fase 10)**: cada perfil vê só os cards que pode usar (sem "Restrito"/"Em breve"): ADMIN 5 (alunos, turmas, avisos, ocorrências, mensagens), PROFESSOR 3, RESPONSAVEL 3 (avisos não lidos, ocorrências aguardando ciência, conversas com mensagem nova). Painel "Próximos eventos" (até 5, ainda não terminados, respeitando a visibilidade) com o próximo feriado nacional. Removido o aviso "Em construção"
+- [x] **Contadores na sidebar**: Mensagens (todos), Meus avisos e Minhas ocorrências (responsável), vindos de `GET /api/me/contadores` (uma chamada). Atualizam ao trocar de página, a cada 60 s com a aba visível e na hora em que a tela lê algo (conversa aberta/respondida, aviso lido, ciência). No celular, um ponto no botão de menu indica que há algo novo
+- [x] **Testes automatizados: 182 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -246,6 +250,8 @@ O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas at
 | GET    | `/api/conversas/:id` | participante | Conversa + `mensagens` (`minha`, `lado`) + `lidaPeloOutroLadoEm`. De outra pessoa → 404 |
 | POST   | `/api/conversas/:id/mensagens` | participante | `{ conteudo }` → conversa atualizada (sobe na lista) |
 | POST   | `/api/conversas/:id/lida` | participante | Marca como lida até a última mensagem (do lado de quem chama) |
+| GET    | `/api/me/contadores` | todos | `{ mensagensNaoLidas }` + RESPONSAVEL: `avisosNaoLidos`, `ocorrenciasPendentes`. Reaproveita as consultas das listas |
+| GET    | `/api/calendario/proximos?limite=5` | todos | `{ eventos, proximoFeriado: { data, nome } \| null, feriadosDisponiveis }` (limite 1–20) |
 
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
@@ -265,7 +271,6 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 Módulos (cada um precisa de backend + frontend + testes):
 - [ ] Integração BrasilAPI: CEP no cadastro (feriados já feitos na Fase 8)
 - [ ] Relatórios
-- [ ] Indicadores reais nos cards do dashboard (trocar "—" quando os endpoints existirem)
 
 Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Logout é só no cliente (JWT stateless). Se precisar invalidar tokens no servidor: tabela de tokens revogados ou campo `token_version` em `usuarios`.
@@ -283,7 +288,7 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Anexos em avisos.
 - [ ] Grade de notas: sair da página pelo menu com alterações não salvas não pede confirmação (só fechar/recarregar a aba). Resolver migrando para o "data router" do React Router (`useBlocker`).
 - [ ] Situação do aluno (aprovado/recuperação) e média mínima configurável — fora do escopo por decisão do usuário (2026-11-05).
-- [ ] Mensagens: sem tempo real (atualiza ao abrir/enviar/botão) e sem contador de não lidas na sidebar; a conversa carrega todas as mensagens de uma vez (paginar se ficarem longas); sem anexos; professor que deixou a turma continua nas conversas antigas.
+- [ ] Mensagens: sem tempo real (a conversa aberta só atualiza ao enviar/botão; os contadores da sidebar atualizam a cada 60 s); a conversa carrega todas as mensagens de uma vez (paginar se ficarem longas); sem anexos; professor que deixou a turma continua nas conversas antigas.
 - [ ] Calendário: feriados estaduais/municipais não vêm da BrasilAPI (só nacionais); cadastrar como evento "Recesso". Card "próximos eventos" no dashboard ainda não existe.
 - [ ] A página de acesso restrito diz "exclusiva da administração" mesmo em rotas de ADMIN+PROFESSOR (texto genérico do `ForbiddenPage`).
 - [ ] Virada de ano letivo (encerrar matrículas do ano anterior em lote) não existe; hoje é turma a turma.
@@ -291,12 +296,11 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 ## Próxima etapa
 
-Os módulos de comunicação do escopo original estão completos (avisos, ocorrências, notas, calendário, mensagens). Candidatos para a **Fase 10** (decidir com o usuário):
+Candidatos para a **Fase 11** (decidir com o usuário):
 
-1. **Dashboard com indicadores reais** para os módulos novos (mensagens não lidas, próximos eventos) + contador de não lidas na sidebar.
+1. **CI no GitHub** (Actions rodando testes do backend com PostgreSQL de serviço, lint e build do frontend em cada PR). Hoje os PRs entram sem verificação automática.
 2. **Relatórios** (ex.: leitura de avisos por turma, ocorrências por período, médias por turma/disciplina).
-3. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor).
-4. **CI no GitHub** (Actions rodando testes, lint e build em cada PR).
+3. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor, tela de Responsáveis).
 
 ## Decisões técnicas
 
@@ -379,3 +383,7 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 75. **Dois canais**: SECRETARIA (qualquer ADMIN vê e responde, como uma caixa compartilhada) e PROFESSOR (privada: o ADMIN **não** vê). Conversas de professor ficam fora do alcance do admin por privacidade; revisável se a escola exigir supervisão.
 76. **Leitura por lado, não por pessoa** (`lida_responsavel_em` / `lida_escola_em`): na secretaria, qualquer admin que leia zera as não lidas. Marca até a MAIOR `enviada_em` existente (não `NOW()`), para não perder mensagem que chegue junto.
 77. **Sem tempo real** (WebSocket/polling) nesta fase: atualiza ao abrir, enviar ou no botão "Atualizar". Mensagens não são editadas nem apagadas.
+78. **Dashboard mostra só o que o perfil pode usar** (2026-11-05): com todos os módulos prontos, os cards "Restrito"/"Em breve" viraram ruído (no celular empurravam o que importa para baixo). Continua valendo: nenhum número inventado.
+79. **Contadores numa chamada só** (`/api/me/contadores`), reaproveitando as funções de listagem com `pageSize: 1` (mesma regra de visibilidade, sem SQL duplicado).
+80. **Atualização dos contadores sem tempo real**: troca de página + intervalo de 60 s (só com a aba visível) + evento de janela `escolaavis:contadores` disparado pelas telas que leem algo. Falha ao buscar só esconde os números.
+81. **Próximos eventos = ainda não terminados** (`data_fim >= hoje`, data local do servidor), com `LIMIT` opcional nas consultas de eventos (`LIMIT NULL` = sem limite no calendário do mês). Próximo feriado busca o ano seguinte se o do ano atual já passou.

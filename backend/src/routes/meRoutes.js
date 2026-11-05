@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ROLES } from '../config/roles.js';
 import * as avisoController from '../controllers/avisoController.js';
+import * as contadorController from '../controllers/contadorController.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { authorize } from '../middlewares/authorize.js';
 import { validateQuery } from '../middlewares/validate.js';
@@ -13,6 +14,9 @@ import { meusAlunosQuerySchema, minhasOcorrenciasQuerySchema } from '../validato
 export const meRoutes = Router();
 
 meRoutes.use(authenticate);
+
+// Todos os perfis: números da sidebar (cada perfil recebe só os que fazem sentido para ele).
+meRoutes.get('/contadores', contadorController.contadores);
 
 const responsavel = authorize(ROLES.RESPONSAVEL);
 meRoutes.get('/avisos', responsavel, validateQuery(meusAvisosQuerySchema), avisoController.listMeus);

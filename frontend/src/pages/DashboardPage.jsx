@@ -1,9 +1,9 @@
 import {
   ClipboardList,
-  Construction,
   Database,
   GraduationCap,
   Megaphone,
+  MessageSquare,
   RefreshCw,
   School,
   Server,
@@ -12,10 +12,12 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '../components/Badge';
+import { ProximosEventos } from '../components/ProximosEventos';
 import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
 import { listAlunos } from '../services/alunoService';
 import { listAvisos, listMeusAvisos } from '../services/avisoService';
+import { listConversas } from '../services/conversaService';
 import { listMinhasOcorrencias, listOcorrencias } from '../services/ocorrenciaService';
 import { listTurmas } from '../services/turmaService';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
@@ -30,6 +32,14 @@ const avisosPublicados = {
   hint: (total) => (total === 1 ? 'aviso publicado' : 'avisos publicados'),
 };
 
+// Mesma consulta para todos os perfis: a API já devolve só as conversas de cada um.
+const mensagensNovas = {
+  fetchTotal: (signal) => listConversas({ naoLidas: 'true', pageSize: 1 }, { signal }),
+  to: '/mensagens?naoLidas=true',
+  linkLabel: 'Ver mensagens',
+  hint: (total) => (total === 1 ? 'conversa com mensagem nova' : 'conversas com mensagens novas'),
+};
+
 const ocorrenciasAtivas = {
   fetchTotal: (signal) => listOcorrencias({ ativo: 'true', pageSize: 1 }, { signal }),
   to: '/ocorrencias',
@@ -38,7 +48,7 @@ const ocorrenciasAtivas = {
 };
 
 // `live` (por perfil) mostra totais REAIS da API para quem tem acesso ao endpoint.
-// Sem `live` para o perfil, o card mostra "—": nunca exibimos números inventados.
+// Perfil sem `live` não vê o card. Nunca exibimos números inventados.
 // pageSize=1 nas buscas: só precisamos do total que vem na paginação.
 const MODULE_CARDS = [
   {
@@ -98,6 +108,12 @@ const MODULE_CARDS = [
         hint: () => 'aguardando sua ciência',
       },
     },
+  },
+  {
+    label: 'Mensagens',
+    icon: MessageSquare,
+    tone: 'violet',
+    live: { ADMIN: mensagensNovas, PROFESSOR: mensagensNovas, RESPONSAVEL: mensagensNovas },
   },
 ];
 
@@ -198,26 +214,6 @@ function CountCard({ label, icon, tone, live }) {
   );
 }
 
-/** Card sem dado: módulo ainda não implementado ("Em breve") ou só da administração ("Restrito"). */
-function PlaceholderCard({ label, icon, tone, restricted }) {
-  return (
-    <article className={styles.card}>
-      <div className={styles.cardTop}>
-        <CardIcon icon={icon} tone={tone} />
-        <span className={styles.soon}>{restricted ? 'Restrito' : 'Em breve'}</span>
-      </div>
-      <p className={styles.cardLabel}>{label}</p>
-      <p
-        className={styles.cardValue}
-        aria-label={`${label}: ${restricted ? 'disponível apenas para a administração' : 'sem dados ainda'}`}
-      >
-        —
-      </p>
-      <p className={styles.cardHint}>{restricted ? 'Disponível para a administração' : 'Módulo ainda não implementado'}</p>
-    </article>
-  );
-}
-
 export function DashboardPage() {
   const { user } = useAuth();
 
@@ -233,25 +229,20 @@ export function DashboardPage() {
         <Badge tone="primary">{roleLabel(user.tipoUsuario)}</Badge>
       </section>
 
-      <div className={styles.notice} role="note">
-        <Construction size={18} aria-hidden="true" />
-        <p>
-          <strong>Em construção.</strong> Os indicadores marcados como “Em breve” serão preenchidos com dados reais
-          quando cada módulo for implementado.
-        </p>
-      </div>
-
       <section className={styles.cards} aria-label="Indicadores dos módulos">
-        {MODULE_CARDS.map((card) => {
-          const live = card.live?.[user.tipoUsuario];
-          return live ? (
-            <CountCard key={card.label} label={card.label} icon={card.icon} tone={card.tone} live={live} />
-          ) : (
-            // Módulo existente mas restrito a outros perfis não é "não implementado".
-            <PlaceholderCard key={card.label} {...card} restricted={Boolean(card.live)} />
-          );
-        })}
+        {/* Só os cards que o perfil pode usar: todos os módulos existem, "Restrito" só ocupava espaço. */}
+        {MODULE_CARDS.filter((card) => card.live[user.tipoUsuario]).map((card) => (
+          <CountCard
+            key={card.label}
+            label={card.label}
+            icon={card.icon}
+            tone={card.tone}
+            live={card.live[user.tipoUsuario]}
+          />
+        ))}
       </section>
+
+      <ProximosEventos />
 
       <div className={styles.panels}>
         <section className={styles.panel} aria-labelledby="profile-title">

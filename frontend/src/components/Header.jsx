@@ -2,7 +2,7 @@ import { LogOut, Menu } from 'lucide-react';
 import { getInitials, roleLabel } from '../utils/formatters';
 import styles from './Header.module.css';
 
-export function Header({ title, user, onMenuClick, menuOpen, sidebarId, onLogout }) {
+export function Header({ title, user, onMenuClick, menuOpen, sidebarId, onLogout, temPendencias = false }) {
   return (
     <header className={styles.header}>
       <div className={styles.left}>
@@ -10,11 +10,12 @@ export function Header({ title, user, onMenuClick, menuOpen, sidebarId, onLogout
           type="button"
           className={styles.menuButton}
           onClick={onMenuClick}
-          aria-label="Abrir menu"
+          aria-label={temPendencias ? 'Abrir menu (há itens novos)' : 'Abrir menu'}
           aria-expanded={menuOpen}
           aria-controls={sidebarId}
         >
           <Menu size={22} />
+          {temPendencias && <span className={styles.menuDot} aria-hidden="true" />}
         </button>
         <h1 className={styles.title}>{title}</h1>
       </div>

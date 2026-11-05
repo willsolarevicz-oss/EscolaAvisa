@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { findNavItemByPath } from '../config/navigation';
 import { useAuth } from '../hooks/useAuth';
+import { useContadores } from '../hooks/useContadores';
 import styles from './DashboardLayout.module.css';
 
 const SIDEBAR_ID = 'app-sidebar';
@@ -17,6 +18,8 @@ export function DashboardLayout({ title }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const contadores = useContadores();
+  const temPendencias = Object.values(contadores).some((n) => n > 0);
   const headerTitle = title ?? findNavItemByPath(pathname)?.label ?? 'EscolaAvis';
 
   // Esc fecha a gaveta no celular/tablet.
@@ -41,6 +44,7 @@ export function DashboardLayout({ title }) {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         tipoUsuario={user.tipoUsuario}
+        contadores={contadores}
       />
       <div className={styles.main}>
         <Header
@@ -50,6 +54,7 @@ export function DashboardLayout({ title }) {
           menuOpen={sidebarOpen}
           onMenuClick={() => setSidebarOpen(true)}
           onLogout={handleLogout}
+          temPendencias={temPendencias}
         />
         <main className={styles.content}>
           <Outlet />

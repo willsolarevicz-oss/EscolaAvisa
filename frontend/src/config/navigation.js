@@ -17,6 +17,7 @@ import {
  * Itens da sidebar. Para liberar um módulo: crie a rota em AppRoutes,
  * preencha `to` e mude `available` para true.
  * `roles` (opcional) só esconde o item na interface; a permissão real é validada no backend.
+ * `counter` (opcional): chave de /api/me/contadores mostrada como número ao lado do item.
  */
 export const NAVIGATION = [
   {
@@ -38,10 +39,17 @@ export const NAVIGATION = [
     title: 'Comunicação',
     items: [
       { label: 'Avisos', to: '/avisos', icon: Megaphone, available: true, roles: ['ADMIN', 'PROFESSOR'] },
-      { label: 'Meus avisos', to: '/meus-avisos', icon: Bell, available: true, roles: ['RESPONSAVEL'] },
+      { label: 'Meus avisos', to: '/meus-avisos', icon: Bell, available: true, roles: ['RESPONSAVEL'], counter: 'avisosNaoLidos' },
       { label: 'Ocorrências', to: '/ocorrencias', icon: ClipboardList, available: true, roles: ['ADMIN', 'PROFESSOR'] },
-      { label: 'Minhas ocorrências', to: '/minhas-ocorrencias', icon: ClipboardList, available: true, roles: ['RESPONSAVEL'] },
-      { label: 'Mensagens', to: '/mensagens', icon: MessageSquare, available: true },
+      {
+        label: 'Minhas ocorrências',
+        to: '/minhas-ocorrencias',
+        icon: ClipboardList,
+        available: true,
+        roles: ['RESPONSAVEL'],
+        counter: 'ocorrenciasPendentes',
+      },
+      { label: 'Mensagens', to: '/mensagens', icon: MessageSquare, available: true, counter: 'mensagensNaoLidas' },
       { label: 'Calendário', to: '/calendario', icon: CalendarDays, available: true },
     ],
   },

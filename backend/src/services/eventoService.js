@@ -107,3 +107,33 @@ export async function deleteEvento(user, id) {
   await findEditavelOrFail(user, id);
   await eventoRepository.remove(id);
 }
+
+// ---------- Dashboard ----------
+
+/**
+ * Próximos eventos visíveis ao usuário (que ainda não terminaram) + o próximo feriado nacional.
+ * "Hoje" é a data local do servidor, como no restante da API.
+ */
+export async function getProximos(user, { limite }) {
+  const hoje = new Date().toLocaleDateString('sv-SE');
+  const ano = Number(hoje.slice(0, 4));
+  const [eventos, feriadosDoAno] = await Promise.all([
+    listEventosVisiveis(user, { inicio: hoje, fim: '2100-12-31', limite }),
+    getFeriadosDoAno(ano),
+  ]);
+
+  let proximoFeriado = feriadosDoAno?.find((f) => f.data >= hoje) ?? null;
+  let feriadosDisponiveis = feriadosDoAno !== null;
+  // Depois do último feriado do ano (ex.: 26/12), o próximo é do ano seguinte.
+  if (feriadosDoAno && !proximoFeriado) {
+    const doAnoSeguinte = await getFeriadosDoAno(ano + 1);
+    proximoFeriado = doAnoSeguinte?.[0] ?? null;
+    feriadosDisponiveis = doAnoSeguinte !== null;
+  }
+
+  return {
+    eventos: eventos.map((evento) => toResponse(user, evento)),
+    proximoFeriado,
+    feriadosDisponiveis,
+  };
+}
