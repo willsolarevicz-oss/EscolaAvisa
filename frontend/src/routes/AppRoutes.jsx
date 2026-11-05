@@ -7,7 +7,12 @@ import { AvisoDetailPage } from '../pages/avisos/AvisoDetailPage';
 import { AvisoFormPage } from '../pages/avisos/AvisoFormPage';
 import { AvisosListPage } from '../pages/avisos/AvisosListPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { MinhaOcorrenciaPage } from '../pages/minhas-ocorrencias/MinhaOcorrenciaPage';
+import { MinhasOcorrenciasPage } from '../pages/minhas-ocorrencias/MinhasOcorrenciasPage';
 import { MeuAvisoPage } from '../pages/meus-avisos/MeuAvisoPage';
+import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage';
+import { OcorrenciaFormPage } from '../pages/ocorrencias/OcorrenciaFormPage';
+import { OcorrenciasListPage } from '../pages/ocorrencias/OcorrenciasListPage';
 import { MeusAvisosPage } from '../pages/meus-avisos/MeusAvisosPage';
 import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
 import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
@@ -53,11 +58,16 @@ export function AppRoutes() {
             <Route path="/avisos" element={<AvisosListPage />} />
             <Route path="/avisos/novo" element={<AvisoFormPage />} />
             <Route path="/avisos/:id" element={<AvisoDetailPage />} />
+            <Route path="/ocorrencias" element={<OcorrenciasListPage />} />
+            <Route path="/ocorrencias/nova" element={<OcorrenciaFormPage />} />
+            <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>
             <Route path="/meus-avisos" element={<MeusAvisosPage />} />
             <Route path="/meus-avisos/:id" element={<MeuAvisoPage />} />
+            <Route path="/minhas-ocorrencias" element={<MinhasOcorrenciasPage />} />
+            <Route path="/minhas-ocorrencias/:id" element={<MinhaOcorrenciaPage />} />
           </Route>
         </Route>
       </Route>

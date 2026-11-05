@@ -13,6 +13,7 @@ import { getApiErrorMessage } from '../../services/api';
 import { toFieldErrors } from '../../utils/apiErrors';
 import { todayIso, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
+import { AlunoOcorrenciasSection } from './AlunoOcorrenciasSection';
 import { AlunoResponsaveisSection } from './AlunoResponsaveisSection';
 
 const MATRICULA_REGEX = /^[A-Za-z0-9./-]+$/;
@@ -227,7 +228,10 @@ export function AlunoFormPage() {
       </section>
 
       {isEdit ? (
-        <AlunoResponsaveisSection alunoId={aluno.id} alunoNome={aluno.nome} initialVinculos={aluno.responsaveis} />
+        <>
+          <AlunoResponsaveisSection alunoId={aluno.id} alunoNome={aluno.nome} initialVinculos={aluno.responsaveis} />
+          <AlunoOcorrenciasSection alunoId={aluno.id} />
+        </>
       ) : (
         <p className={styles.muted}>Os responsáveis são vinculados depois que o aluno for cadastrado.</p>
       )}

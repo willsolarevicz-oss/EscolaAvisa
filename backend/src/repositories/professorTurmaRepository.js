@@ -1,4 +1,5 @@
 import { pool } from '../database/pool.js';
+import { containsPattern } from '../database/sqlHelpers.js';
 
 const SELECT_ATRIBUICAO = `
   SELECT pt.id, pt.turma_id, pt.criado_em,
@@ -24,6 +25,43 @@ export async function professorLecionaNaTurma(professorId, turmaId) {
     [professorId, turmaId],
   );
   return rowCount > 0;
+}
+
+/** O aluno tem matrícula ativa em alguma turma ativa em que o professor leciona? */
+export async function professorLecionaParaAluno(professorId, alunoId) {
+  const { rowCount } = await pool.query(
+    `SELECT 1
+     FROM aluno_turma atm
+     JOIN turmas t ON t.id = atm.turma_id AND t.ativo
+     JOIN professor_turma pt ON pt.turma_id = atm.turma_id AND pt.professor_id = $1
+     WHERE atm.aluno_id = $2 AND atm.ativo
+     LIMIT 1`,
+    [professorId, alunoId],
+  );
+  return rowCount > 0;
+}
+
+/** Alunos ATIVOS com matrícula ativa nas turmas ativas do professor (busca por nome/matrícula). */
+export async function listAlunosDoProfessor(professorId, { busca, limit }) {
+  const params = [professorId];
+  let buscaSql = '';
+  if (busca) {
+    params.push(containsPattern(busca));
+    buscaSql = `AND (a.nome ILIKE $${params.length} OR a.matricula ILIKE $${params.length})`;
+  }
+  params.push(limit);
+  const { rows } = await pool.query(
+    `SELECT DISTINCT a.id, a.nome, a.matricula
+     FROM alunos a
+     JOIN aluno_turma atm ON atm.aluno_id = a.id AND atm.ativo
+     JOIN turmas t ON t.id = atm.turma_id AND t.ativo
+     JOIN professor_turma pt ON pt.turma_id = t.id AND pt.professor_id = $1
+     WHERE a.ativo ${buscaSql}
+     ORDER BY a.nome ASC, a.id ASC
+     LIMIT $${params.length}`,
+    params,
+  );
+  return rows;
 }
 
 /** Turmas ATIVAS em que o professor leciona, com as disciplinas dele em cada uma. */

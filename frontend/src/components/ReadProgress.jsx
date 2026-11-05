@@ -1,8 +1,14 @@
 import styles from './ReadProgress.module.css';
 
-/** Barra "X de Y leram" do controle de visualização de avisos. */
-export function ReadProgress({ lidos, total, compact = false }) {
+const LEITURA = { um: 'leu', varios: 'leram' };
+
+/**
+ * Barra "X de Y leram" do controle de visualização (avisos) ou de ciência (ocorrências).
+ * `verbo`: { um, varios } — ex.: { um: 'deu ciência', varios: 'deram ciência' }.
+ */
+export function ReadProgress({ lidos, total, compact = false, verbo = LEITURA }) {
   const percent = total > 0 ? Math.round((lidos / total) * 100) : 0;
+  const texto = `${lidos} de ${total} ${total === 1 ? verbo.um : verbo.varios}`;
   return (
     <div className={`${styles.wrap} ${compact ? styles.compact : ''}`}>
       <div
@@ -11,13 +17,11 @@ export function ReadProgress({ lidos, total, compact = false }) {
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={lidos}
-        aria-label={`${lidos} de ${total} responsáveis leram`}
+        aria-label={texto}
       >
         <span className={`${styles.bar} ${percent === 100 ? styles.done : ''}`} style={{ width: `${percent}%` }} />
       </div>
-      <span className={styles.text}>
-        {lidos} de {total} {total === 1 ? 'leu' : 'leram'}
-      </span>
+      <span className={styles.text}>{texto}</span>
     </div>
   );
 }

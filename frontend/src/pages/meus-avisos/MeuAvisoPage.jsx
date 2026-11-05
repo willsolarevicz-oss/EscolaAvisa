@@ -8,7 +8,7 @@ import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { getMeuAviso, marcarAvisoComoLido } from '../../services/avisoService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
-import styles from '../avisos/Aviso.module.css';
+import styles from '../../styles/Comunicado.module.css';
 
 /** Leitura de um aviso pelo responsável. Abrir a página registra a visualização. */
 export function MeuAvisoPage() {

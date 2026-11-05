@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 5 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, e **avisos com controle de leitura** (publicação pela escola/professores e leitura pelos responsáveis).
+> **Status:** Fases 1 a 6 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura** e **ocorrências com ciência do responsável**.
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -195,6 +195,13 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/me/avisos/:id` | RESPONSAVEL | Um aviso recebido                                 |
 | POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura                  |
 | GET    | `/api/me/turmas`   | PROFESSOR     | Turmas em que o professor leciona                 |
+| GET/POST | `/api/ocorrencias` | ADMIN, PROFESSOR | Lista (com contagem de ciências) / registra (`alunoId`, `tipo`, `descricao`, `dataOcorrencia`) |
+| GET    | `/api/ocorrencias/:id` | ADMIN, PROFESSOR | Detalhe com quem deu ciência                 |
+| PATCH  | `/api/ocorrencias/:id/ativo` | ADMIN, PROFESSOR | Arquivar / reativar                    |
+| GET    | `/api/me/ocorrencias` | RESPONSAVEL | Ocorrências dos seus alunos (`pendentes=true` filtra) |
+| GET    | `/api/me/ocorrencias/:id` | RESPONSAVEL | Uma ocorrência                              |
+| POST   | `/api/me/ocorrencias/:id/ciencia` | RESPONSAVEL | "Estou ciente"                      |
+| GET    | `/api/me/alunos`   | PROFESSOR     | Alunos das turmas do professor (`busca`)          |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

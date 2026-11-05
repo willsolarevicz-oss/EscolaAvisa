@@ -6,6 +6,7 @@ import { authRoutes } from './authRoutes.js';
 import { avisoRoutes } from './avisoRoutes.js';
 import { disciplinaRoutes } from './disciplinaRoutes.js';
 import { meRoutes } from './meRoutes.js';
+import { ocorrenciaRoutes } from './ocorrenciaRoutes.js';
 import { turmaRoutes } from './turmaRoutes.js';
 import { usuarioRoutes } from './usuarioRoutes.js';
 
@@ -19,4 +20,5 @@ apiRoutes.use('/alunos', alunoRoutes);
 apiRoutes.use('/disciplinas', disciplinaRoutes);
 apiRoutes.use('/turmas', turmaRoutes);
 apiRoutes.use('/avisos', avisoRoutes);
+apiRoutes.use('/ocorrencias', ocorrenciaRoutes);
 apiRoutes.use('/me', meRoutes);

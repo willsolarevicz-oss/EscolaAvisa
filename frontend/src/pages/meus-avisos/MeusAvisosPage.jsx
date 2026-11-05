@@ -8,7 +8,7 @@ import { usePaginatedList } from '../../hooks/usePaginatedList';
 import { listMeusAvisos } from '../../services/avisoService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import listStyles from '../../styles/ListPage.module.css';
-import styles from '../avisos/Aviso.module.css';
+import styles from '../../styles/Comunicado.module.css';
 
 const FILTROS = [
   { value: '', label: 'Todos' },

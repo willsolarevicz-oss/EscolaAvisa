@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
 import { listAlunos } from '../services/alunoService';
 import { listAvisos, listMeusAvisos } from '../services/avisoService';
+import { listMinhasOcorrencias, listOcorrencias } from '../services/ocorrenciaService';
 import { listTurmas } from '../services/turmaService';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
 import styles from './DashboardPage.module.css';
@@ -27,6 +28,13 @@ const avisosPublicados = {
   to: '/avisos',
   linkLabel: 'Ver avisos',
   hint: (total) => (total === 1 ? 'aviso publicado' : 'avisos publicados'),
+};
+
+const ocorrenciasAtivas = {
+  fetchTotal: (signal) => listOcorrencias({ ativo: 'true', pageSize: 1 }, { signal }),
+  to: '/ocorrencias',
+  linkLabel: 'Ver ocorrências',
+  hint: (total) => (total === 1 ? 'ocorrência ativa' : 'ocorrências ativas'),
 };
 
 // `live` (por perfil) mostra totais REAIS da API para quem tem acesso ao endpoint.
@@ -75,7 +83,22 @@ const MODULE_CARDS = [
       },
     },
   },
-  { label: 'Ocorrências', icon: ClipboardList, tone: 'red' },
+  {
+    label: 'Ocorrências',
+    icon: ClipboardList,
+    tone: 'red',
+    live: {
+      ADMIN: ocorrenciasAtivas,
+      // Para o professor, a API já filtra só as ocorrências dele.
+      PROFESSOR: { ...ocorrenciasAtivas, hint: (total) => (total === 1 ? 'ocorrência sua ativa' : 'ocorrências suas ativas') },
+      RESPONSAVEL: {
+        fetchTotal: (signal) => listMinhasOcorrencias({ pendentes: 'true', pageSize: 1 }, { signal }),
+        to: '/minhas-ocorrencias',
+        linkLabel: 'Ver ocorrências',
+        hint: () => 'aguardando sua ciência',
+      },
+    },
+  },
 ];
 
 const HEALTH_LABELS = {

@@ -13,7 +13,7 @@ import { getApiErrorMessage } from '../../services/api';
 import { getAviso, setAvisoAtivo } from '../../services/avisoService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
-import styles from './Aviso.module.css';
+import styles from '../../styles/Comunicado.module.css';
 
 const FILTROS = [
   { value: 'todos', label: 'Todos' },

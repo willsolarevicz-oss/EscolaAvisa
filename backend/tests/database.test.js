@@ -60,6 +60,8 @@ describe('Migrations', () => {
         'aviso_destinatarios',
         'avisos',
         'disciplinas',
+        'ocorrencia_ciencias',
+        'ocorrencias',
         'pgmigrations',
         'professor_turma',
         'responsaveis',

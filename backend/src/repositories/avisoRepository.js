@@ -1,4 +1,5 @@
 import { pool } from '../database/pool.js';
+import { responsaveisAutorizadosSql } from '../database/responsaveisAutorizados.js';
 import { containsPattern } from '../database/sqlHelpers.js';
 
 // Aviso + nomes (autor, turma, aluno) + contagem de destinatários e de leituras.
@@ -71,21 +72,16 @@ export async function create({ titulo, conteudo, publico, turmaId, alunoId, auto
  * comunicações, de alunos ATIVOS do público do aviso. Devolve quantos foram gravados.
  */
 export async function insertDestinatarios({ avisoId, publico, turmaId, alunoId }, db = pool) {
+  const alunosDoPublico = `
+    $2::text = 'TODOS'
+    OR ($2::text = 'ALUNO' AND a.id = $4::uuid)
+    OR ($2::text = 'TURMA' AND EXISTS (
+          SELECT 1 FROM aluno_turma atm
+          WHERE atm.aluno_id = a.id AND atm.turma_id = $3::uuid AND atm.ativo))`;
   const { rowCount } = await db.query(
     `INSERT INTO aviso_destinatarios (aviso_id, usuario_id)
-     SELECT DISTINCT $1::uuid, r.usuario_id
-     FROM aluno_responsavel ar
-     JOIN responsaveis r ON r.id = ar.responsavel_id
-     JOIN usuarios u ON u.id = r.usuario_id AND u.ativo
-     JOIN alunos a ON a.id = ar.aluno_id AND a.ativo
-     WHERE ar.autorizado_receber_comunicacoes
-       AND (
-         $2::text = 'TODOS'
-         OR ($2::text = 'ALUNO' AND a.id = $4::uuid)
-         OR ($2::text = 'TURMA' AND EXISTS (
-               SELECT 1 FROM aluno_turma atm
-               WHERE atm.aluno_id = a.id AND atm.turma_id = $3::uuid AND atm.ativo))
-       )`,
+     SELECT $1::uuid, destinatario.usuario_id
+     FROM (${responsaveisAutorizadosSql(alunosDoPublico)}) AS destinatario`,
     [avisoId, publico, turmaId, alunoId],
   );
   return rowCount;

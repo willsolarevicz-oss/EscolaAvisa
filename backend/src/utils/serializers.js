@@ -112,6 +112,45 @@ export function toMeuAvisoResponse(aviso) {
   };
 }
 
+/** Ocorrência vista por quem registra (com contagem de ciências). */
+export function toOcorrenciaResponse(ocorrencia) {
+  return {
+    id: ocorrencia.id,
+    tipo: ocorrencia.tipo,
+    descricao: ocorrencia.descricao,
+    dataOcorrencia: ocorrencia.data_ocorrencia,
+    aluno: { id: ocorrencia.aluno_id, nome: ocorrencia.aluno_nome, matricula: ocorrencia.aluno_matricula },
+    autor: { id: ocorrencia.autor_id, nome: ocorrencia.autor_nome },
+    ativo: ocorrencia.ativo,
+    criadoEm: ocorrencia.criado_em,
+    totalResponsaveis: ocorrencia.total_responsaveis,
+    totalCientes: ocorrencia.total_cientes,
+  };
+}
+
+export function toCienciaResponse(ciencia) {
+  return {
+    usuario: { id: ciencia.usuario_id, nome: ciencia.nome, email: ciencia.email },
+    ciente: ciencia.ciente_em !== null,
+    cienteEm: ciencia.ciente_em,
+  };
+}
+
+/** Ocorrência vista pelo responsável. */
+export function toMinhaOcorrenciaResponse(ocorrencia) {
+  return {
+    id: ocorrencia.id,
+    tipo: ocorrencia.tipo,
+    descricao: ocorrencia.descricao,
+    dataOcorrencia: ocorrencia.data_ocorrencia,
+    alunoNome: ocorrencia.aluno_nome,
+    autorNome: ocorrencia.autor_nome,
+    criadoEm: ocorrencia.criado_em,
+    ciente: ocorrencia.ciente_em !== null,
+    cienteEm: ocorrencia.ciente_em,
+  };
+}
+
 /** Aluno no formato da API. dataNascimento é string AAAA-MM-DD (sem fuso horário). */
 export function toAlunoResponse(aluno) {
   return {

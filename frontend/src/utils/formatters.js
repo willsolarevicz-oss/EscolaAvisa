@@ -43,6 +43,23 @@ export const PUBLICO_OPTIONS = [
   { value: 'ALUNO', label: 'Um aluno' },
 ];
 
+const TIPOS_OCORRENCIA = {
+  DISCIPLINAR: { label: 'Disciplinar', tone: 'danger' },
+  ATRASO: { label: 'Atraso', tone: 'warning' },
+  SAUDE: { label: 'Saúde', tone: 'primary' },
+  ELOGIO: { label: 'Elogio', tone: 'success' },
+  OUTRO: { label: 'Outro', tone: 'neutral' },
+};
+
+export function tipoOcorrencia(tipo) {
+  return TIPOS_OCORRENCIA[tipo] ?? { label: tipo, tone: 'neutral' };
+}
+
+/** Texto da barra de progresso de ciência (ReadProgress). */
+export const VERBO_CIENCIA = { um: 'deu ciência', varios: 'deram ciência' };
+
+export const TIPO_OCORRENCIA_OPTIONS = Object.entries(TIPOS_OCORRENCIA).map(([value, { label }]) => ({ value, label }));
+
 /** Data e hora curtas: "04/11/2026 19:30". */
 export function formatDateTime(value) {
   return formatDate(value, { dateStyle: 'short', timeStyle: 'short' });
