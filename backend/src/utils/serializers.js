@@ -199,3 +199,23 @@ export function toUsuarioDetailResponse(usuario, responsavel) {
   }
   return response;
 }
+
+/**
+ * Evento do calendário. `podeEditar` vem calculado para o usuário logado
+ * (a tela não precisa repetir a regra de permissão).
+ */
+export function toEventoResponse(evento, podeEditar = false) {
+  return {
+    id: evento.id,
+    titulo: evento.titulo,
+    descricao: evento.descricao,
+    tipo: evento.tipo,
+    dataInicio: evento.data_inicio,
+    dataFim: evento.data_fim,
+    turma: evento.turma_id ? { id: evento.turma_id, nome: evento.turma_nome } : null,
+    autor: { id: evento.autor_id, nome: evento.autor_nome },
+    podeEditar,
+    criadoEm: evento.criado_em,
+    atualizadoEm: evento.atualizado_em,
+  };
+}

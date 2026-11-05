@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 7 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável** e **notas com boletim**.
+> **Status:** Fases 1 a 8 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim** e **calendário escolar com feriados nacionais (BrasilAPI)**.
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -88,6 +88,8 @@ npm run dev               # abre em http://localhost:5173
 | `AUTH_RATE_LIMIT_MAX`             | não         | Tentativas de login com falha por IP na janela (padrão `10`)                    |
 | `AUTH_RATE_LIMIT_WINDOW_MINUTES`  | não         | Janela do rate limit em minutos (padrão `15`)                                   |
 | `TRUST_PROXY`                     | em produção atrás de proxy | Nº de proxies reversos na frente da API (padrão `false`). **Obrigatório configurar atrás de Nginx/load balancer**, senão todos os usuários dividem o mesmo limite de login. `true` é recusado por segurança |
+| `BRASILAPI_URL`                   | não         | Base da BrasilAPI para os feriados do calendário (padrão `https://brasilapi.com.br/api`). Pública, sem chave |
+| `BRASILAPI_TIMEOUT_MS`            | não         | Tempo máximo da consulta de feriados (padrão `3000`). Se estourar, o calendário funciona sem os feriados |
 | `SEED_ADMIN_PASSWORD`             | em produção | Senha do admin criado pelo seed. Em desenvolvimento, se vazio, usa `Admin@123` |
 
 Gere um `JWT_SECRET` seguro com:
@@ -205,6 +207,9 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/notas/turmas` | ADMIN, PROFESSOR | Turmas com as disciplinas lecionadas (professor: só as dele) |
 | GET/PUT | `/api/notas/turmas/:turmaId/disciplinas/:disciplinaId` | ADMIN, PROFESSOR (atribuído) | Grade de notas / lança em lote (`{ notas: [{ alunoId, bimestre, valor \| null }] }`, null apaga) |
 | GET    | `/api/me/boletim`  | RESPONSAVEL   | Notas e média por disciplina dos seus alunos      |
+| GET    | `/api/calendario?mes=AAAA-MM` | todos | Eventos visíveis ao usuário + feriados nacionais do mês (BrasilAPI) |
+| POST   | `/api/eventos`     | ADMIN, PROFESSOR | Cria evento (professor: só para turma em que leciona) |
+| GET/PUT/DELETE | `/api/eventos/:id` | ADMIN, PROFESSOR (autor) | Carrega / edita / exclui evento |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

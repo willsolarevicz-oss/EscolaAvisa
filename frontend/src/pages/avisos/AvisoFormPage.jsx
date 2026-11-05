@@ -1,6 +1,5 @@
-import axios from 'axios';
 import { Send, Type } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
@@ -10,10 +9,10 @@ import { SelectField } from '../../components/SelectField';
 import { TextAreaField } from '../../components/TextAreaField';
 import { TextField } from '../../components/TextField';
 import { useAuth } from '../../hooks/useAuth';
+import { useTurmasDisponiveis } from '../../hooks/useTurmasDisponiveis';
 import { listAlunos } from '../../services/alunoService';
 import { getApiErrorMessage } from '../../services/api';
-import { createAviso, listMinhasTurmas } from '../../services/avisoService';
-import { listTurmas } from '../../services/turmaService';
+import { createAviso } from '../../services/avisoService';
 import { toFieldErrors } from '../../utils/apiErrors';
 import { PUBLICO_OPTIONS, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
@@ -21,27 +20,6 @@ import relationStyles from '../../styles/RelationSection.module.css';
 
 const buscarAlunos = (busca, { signal }) =>
   listAlunos({ ativo: 'true', pageSize: 6, busca }, { signal }).then((data) => data.items);
-
-/** Turmas que o usuário pode escolher: professor → onde leciona; admin → turmas ativas. */
-function useTurmasDisponiveis(isProfessor) {
-  const [state, setState] = useState({ status: 'loading', items: [] });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const request = isProfessor
-      ? listMinhasTurmas({ signal: controller.signal })
-      : listTurmas({ ativo: 'true', pageSize: 100 }, { signal: controller.signal }).then((data) => data.items);
-
-    request
-      .then((items) => setState({ status: 'ready', items }))
-      .catch((error) => {
-        if (!axios.isCancel(error)) setState({ status: 'error', items: [] });
-      });
-    return () => controller.abort();
-  }, [isProfessor]);
-
-  return state;
-}
 
 function validate(form) {
   const errors = {};

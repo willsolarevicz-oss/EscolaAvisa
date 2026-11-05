@@ -8,3 +8,6 @@ process.env.AUTH_RATE_LIMIT_MAX = '10';
 process.env.AUTH_RATE_LIMIT_WINDOW_MINUTES = '15';
 process.env.JWT_EXPIRES_IN = '8h';
 process.env.TRUST_PROXY = 'false';
+// Testes nunca acessam a internet: porta 9 (discard) recusa a conexão na hora.
+// Os testes do calendário simulam o fetch da BrasilAPI.
+process.env.BRASILAPI_URL = 'http://127.0.0.1:9/api';
