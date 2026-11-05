@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 10 (dashboard com indicadores reais e contadores na sidebar). Branch: `feat/fase-10-dashboard`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–9 já na `main` via PRs #1 a #3; cada fase nova entra por PR).
+> Última atualização: 2026-11-05 — fim da Fase 11 (CI no GitHub Actions). Branch: `feat/fase-11-ci`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–10 já na `main` via PRs #1 a #4; cada fase nova entra por PR e agora passa pela CI).
 
 ---
 
@@ -23,6 +23,7 @@ O **EscolaAvis** é um sistema web de comunicação entre a escola e os respons�
 
 ```
 escola-avisa/
+├── .github/workflows/ci.yml  CI: testes do backend (PostgreSQL de serviço) + lint/build do frontend
 ├── backend/
 │   ├── migrations/          SQL versionado (node-pg-migrate). Nunca editar migration já aplicada.
 │   ├── seeds/               adminSeed.js (idempotente) + run.js (entrada do npm run seed)
@@ -176,6 +177,7 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] **Mensagens (Fase 9)**: conversas sempre sobre um aluno, em dois canais: SECRETARIA (qualquer ADMIN atende) e PROFESSOR (privada entre o responsável e aquele professor). Responsável inicia com a secretaria ou com professor que dá aula para o filho; professor inicia com responsável de aluno das turmas dele; ADMIN inicia pela secretaria com qualquer aluno ativo. Só responsáveis **autorizados**. Lista com "N novas" e filtro "Não lidas", conversa em balões (quebras de linha mantidas), "Lida" nas minhas mensagens, Ctrl+Enter envia, botão Atualizar (sem tempo real)
 - [x] **Dashboard com dados reais (Fase 10)**: cada perfil vê só os cards que pode usar (sem "Restrito"/"Em breve"): ADMIN 5 (alunos, turmas, avisos, ocorrências, mensagens), PROFESSOR 3, RESPONSAVEL 3 (avisos não lidos, ocorrências aguardando ciência, conversas com mensagem nova). Painel "Próximos eventos" (até 5, ainda não terminados, respeitando a visibilidade) com o próximo feriado nacional. Removido o aviso "Em construção"
 - [x] **Contadores na sidebar**: Mensagens (todos), Meus avisos e Minhas ocorrências (responsável), vindos de `GET /api/me/contadores` (uma chamada). Atualizam ao trocar de página, a cada 60 s com a aba visível e na hora em que a tela lê algo (conversa aberta/respondida, aviso lido, ciência). No celular, um ponto no botão de menu indica que há algo novo
+- [x] **CI no GitHub Actions (Fase 11)**: `.github/workflows/ci.yml` roda em todo PR e push na `main`. Job backend: PostgreSQL 17 como service container, `npm ci` + `npm test` (JWT_SECRET gerado a cada execução). Job frontend: `npm ci` + lint + build. Execuções antigas do mesmo PR são canceladas. Selo de status no README. Simulado antes numa cópia limpa do repositório (sem `.env`/`node_modules`): 182/182, lint e build OK
 - [x] **Testes automatizados: 182 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
 - [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px)
@@ -278,6 +280,9 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Achados da revisão de código ainda não aplicados: `migrate:down` sem confirmação; `catch` vazio em `tokenStorage.get/clear`; estado "deslogado" repetido no `AuthProvider`; 404 repete estilos do `Button`.
 - [ ] Alterar senha / "esqueci minha senha"
 - [ ] Testes automatizados do frontend (Vitest + Testing Library)
+- [ ] Proteger a `main` no GitHub (exigir CI verde e PR para merge): é configuração do repositório (Settings → Branches), decisão do dono.
+- [ ] `npm audit` (2026-11-05): backend com 3 vulnerabilidades moderadas em `glob`/`minimatch`, dependências internas do `node-pg-migrate` (só lê a pasta de migrations, sem entrada do usuário). A correção sugerida rebaixa o `node-pg-migrate` 9 → 7 (quebra); aguardar versão nova. Frontend: 0 em produção, 4 moderadas em dev. O audit não bloqueia a CI.
+- [ ] Build do frontend avisa sobre bundle > 500 kB: dividir rotas com `React.lazy` se o carregamento inicial pesar.
 - [ ] Buscas (usuários e alunos) não ignoram acentos ("joao" não acha "João"). Solução: extensão `unaccent` em uma migration.
 - [ ] Item "Responsáveis" da sidebar continua "Em breve": hoje responsáveis são geridos em Usuários (perfil Responsável) + vínculos na tela do aluno. Decidir se vale uma tela própria (ex.: lista de responsáveis com seus alunos).
 - [ ] Aluno sem nenhum responsável não tem alerta além do selo "Sem responsável" na lista.
@@ -296,11 +301,11 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 ## Próxima etapa
 
-Candidatos para a **Fase 11** (decidir com o usuário):
+Candidatos para a **Fase 12** (decidir com o usuário):
 
-1. **CI no GitHub** (Actions rodando testes do backend com PostgreSQL de serviço, lint e build do frontend em cada PR). Hoje os PRs entram sem verificação automática.
-2. **Relatórios** (ex.: leitura de avisos por turma, ocorrências por período, médias por turma/disciplina).
-3. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor, tela de Responsáveis).
+1. **Relatórios** (ex.: leitura de avisos por turma, ocorrências por período, médias por turma/disciplina).
+2. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor, tela de Responsáveis).
+3. **Testes do frontend** (Vitest + Testing Library) entrando no job de frontend da CI.
 
 ## Decisões técnicas
 
@@ -387,3 +392,6 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 79. **Contadores numa chamada só** (`/api/me/contadores`), reaproveitando as funções de listagem com `pageSize: 1` (mesma regra de visibilidade, sem SQL duplicado).
 80. **Atualização dos contadores sem tempo real**: troca de página + intervalo de 60 s (só com a aba visível) + evento de janela `escolaavis:contadores` disparado pelas telas que leem algo. Falha ao buscar só esconde os números.
 81. **Próximos eventos = ainda não terminados** (`data_fim >= hoje`, data local do servidor), com `LIMIT` opcional nas consultas de eventos (`LIMIT NULL` = sem limite no calendário do mês). Próximo feriado busca o ano seguinte se o do ano atual já passou.
+82. **CI com GitHub Actions** (2026-11-05): dois jobs paralelos em máquina limpa; backend testa contra PostgreSQL 17 real (service container), não mock. Node pela `.nvmrc`; cache do npm por `package-lock.json`.
+83. **Nenhum segredo na CI**: `JWT_SECRET` gerado por `openssl rand` a cada execução; a senha do PostgreSQL da CI é fixa no YAML porque o banco é descartável e inacessível de fora.
+84. **`npm audit` informativo, não bloqueante**: as vulnerabilidades atuais vêm de dependência transitiva de ferramenta de migration; bloquear o PR por isso impediria qualquer entrega até o fornecedor corrigir.
