@@ -17,6 +17,31 @@ export async function listByTurma(turmaId) {
   return rows;
 }
 
+/** O professor leciona (qualquer disciplina) nesta turma? */
+export async function professorLecionaNaTurma(professorId, turmaId) {
+  const { rowCount } = await pool.query(
+    'SELECT 1 FROM professor_turma WHERE professor_id = $1 AND turma_id = $2 LIMIT 1',
+    [professorId, turmaId],
+  );
+  return rowCount > 0;
+}
+
+/** Turmas ATIVAS em que o professor leciona, com as disciplinas dele em cada uma. */
+export async function listTurmasDoProfessor(professorId) {
+  const { rows } = await pool.query(
+    `SELECT t.id, t.nome, t.ano_letivo, t.turno,
+            ARRAY_AGG(d.nome ORDER BY d.nome) AS disciplinas
+     FROM professor_turma pt
+     JOIN turmas t ON t.id = pt.turma_id AND t.ativo
+     JOIN disciplinas d ON d.id = pt.disciplina_id
+     WHERE pt.professor_id = $1
+     GROUP BY t.id
+     ORDER BY t.ano_letivo DESC, t.nome ASC`,
+    [professorId],
+  );
+  return rows;
+}
+
 export async function findByIdForTurma(id, turmaId) {
   const { rows } = await pool.query(`${SELECT_ATRIBUICAO} WHERE pt.id = $1 AND pt.turma_id = $2`, [id, turmaId]);
   return rows[0] ?? null;

@@ -15,25 +15,35 @@ import { Badge } from '../components/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
 import { listAlunos } from '../services/alunoService';
+import { listAvisos, listMeusAvisos } from '../services/avisoService';
 import { listTurmas } from '../services/turmaService';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
 import styles from './DashboardPage.module.css';
 
 const anoAtual = new Date().getFullYear();
 
-// Cards com `live` mostram totais REAIS da API (só para ADMIN, que é quem acessa esses endpoints).
-// Os demais mostram "—": nunca exibimos números inventados.
+const avisosPublicados = {
+  fetchTotal: (signal) => listAvisos({ ativo: 'true', pageSize: 1 }, { signal }),
+  to: '/avisos',
+  linkLabel: 'Ver avisos',
+  hint: (total) => (total === 1 ? 'aviso publicado' : 'avisos publicados'),
+};
+
+// `live` (por perfil) mostra totais REAIS da API para quem tem acesso ao endpoint.
+// Sem `live` para o perfil, o card mostra "—": nunca exibimos números inventados.
+// pageSize=1 nas buscas: só precisamos do total que vem na paginação.
 const MODULE_CARDS = [
   {
     label: 'Alunos',
     icon: GraduationCap,
     tone: 'blue',
     live: {
-      // pageSize=1: só precisamos do total que vem na paginação.
-      fetchTotal: (signal) => listAlunos({ ativo: 'true', pageSize: 1 }, { signal }),
-      to: '/alunos',
-      linkLabel: 'Ver alunos',
-      hint: (total) => (total === 1 ? 'aluno ativo' : 'alunos ativos'),
+      ADMIN: {
+        fetchTotal: (signal) => listAlunos({ ativo: 'true', pageSize: 1 }, { signal }),
+        to: '/alunos',
+        linkLabel: 'Ver alunos',
+        hint: (total) => (total === 1 ? 'aluno ativo' : 'alunos ativos'),
+      },
     },
   },
   {
@@ -41,13 +51,30 @@ const MODULE_CARDS = [
     icon: School,
     tone: 'green',
     live: {
-      fetchTotal: (signal) => listTurmas({ ativo: 'true', anoLetivo: anoAtual, pageSize: 1 }, { signal }),
-      to: '/turmas',
-      linkLabel: 'Ver turmas',
-      hint: (total) => `${total === 1 ? 'turma ativa' : 'turmas ativas'} em ${anoAtual}`,
+      ADMIN: {
+        fetchTotal: (signal) => listTurmas({ ativo: 'true', anoLetivo: anoAtual, pageSize: 1 }, { signal }),
+        to: '/turmas',
+        linkLabel: 'Ver turmas',
+        hint: (total) => `${total === 1 ? 'turma ativa' : 'turmas ativas'} em ${anoAtual}`,
+      },
     },
   },
-  { label: 'Avisos', icon: Megaphone, tone: 'amber' },
+  {
+    label: 'Avisos',
+    icon: Megaphone,
+    tone: 'amber',
+    live: {
+      ADMIN: avisosPublicados,
+      // Para o professor, a API já filtra só os avisos dele.
+      PROFESSOR: { ...avisosPublicados, hint: (total) => (total === 1 ? 'aviso seu publicado' : 'avisos seus publicados') },
+      RESPONSAVEL: {
+        fetchTotal: (signal) => listMeusAvisos({ naoLidos: 'true', pageSize: 1 }, { signal }),
+        to: '/meus-avisos',
+        linkLabel: 'Ver avisos',
+        hint: (total) => (total === 1 ? 'aviso não lido' : 'avisos não lidos'),
+      },
+    },
+  },
   { label: 'Ocorrências', icon: ClipboardList, tone: 'red' },
 ];
 
@@ -170,7 +197,6 @@ function PlaceholderCard({ label, icon, tone, restricted }) {
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const isAdmin = user.tipoUsuario === 'ADMIN';
 
   return (
     <div className={styles.page}>
@@ -193,14 +219,15 @@ export function DashboardPage() {
       </div>
 
       <section className={styles.cards} aria-label="Indicadores dos módulos">
-        {MODULE_CARDS.map((card) =>
-          card.live && isAdmin ? (
-            <CountCard key={card.label} {...card} />
+        {MODULE_CARDS.map((card) => {
+          const live = card.live?.[user.tipoUsuario];
+          return live ? (
+            <CountCard key={card.label} label={card.label} icon={card.icon} tone={card.tone} live={live} />
           ) : (
-            // Módulo existente mas restrito à administração não é "não implementado".
+            // Módulo existente mas restrito a outros perfis não é "não implementado".
             <PlaceholderCard key={card.label} {...card} restricted={Boolean(card.live)} />
-          ),
-        )}
+          );
+        })}
       </section>
 
       <div className={styles.panels}>

@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-04 — fim da Fase 4 (turmas, disciplinas, matrícula e professores). Branch: `feat/fase-4-turmas`.
+> Última atualização: 2026-11-04 — fim da Fase 5 (avisos com controle de leitura). Branch: `feat/fase-5-avisos`.
 
 ---
 
@@ -38,7 +38,7 @@ escola-avisa/
 │       ├── validators/      schemas zod (commonValidators: nome, e-mail, senha, telefone, CPF,
 │       │                    optionalTextSchema, listQueryShape e setAtivoSchema reutilizáveis)
 │       ├── middlewares/     authenticate, authorize, validateBody/validateQuery, rate limit, errorHandler
-│       ├── routes/          index.js agrega tudo sob /api
+│       ├── routes/          index.js agrega tudo sob /api; meRoutes.js = rotas do próprio usuário (/api/me)
 │       ├── utils/           AppError, jwt, password, serializers, uuid (isUuid), cpf (isValidCpf),
 │       │                    dbErrors (rethrowUniqueAsConflict: UNIQUE → 409 com campo), pagination (toPagination)
 │       ├── app.js           monta o Express (sem listen; usado pelos testes)
@@ -49,20 +49,23 @@ escola-avisa/
         ├── contexts/        authContext.js (contexto + status) e AuthProvider.jsx (lógica da sessão)
         ├── hooks/           useAuth, useApiHealth, useDebouncedValue, usePaginatedList (listagem com
         │                    filtros na URL), useFlashMessage (mensagem entre páginas), useAtivoToggle
-        │                    (confirmar + ativar/desativar em listagens)
+        │                    (confirmar + ativar/desativar em listagens), useEntityLoader (carregar registro
+        │                    por id: loading/notfound/error/reload — usado em todos os formulários e detalhes)
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
-        │                    alunoService, disciplinaService, turmaService
+        │                    alunoService, disciplinaService, turmaService, avisoService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
         ├── components/      Logo, Button (aceita `to`), TextField, SelectField, Alert, Badge, PageHeader
         │                    (título + breadcrumbs), Pagination, ConfirmDialog (<dialog>), CheckboxField, SearchPicker
-        │                    (buscar e selecionar), RowActions (editar/ativar/desativar), Sidebar, Header, FullScreenStatus
+        │                    (buscar e selecionar), RowActions (editar/ativar/desativar), TextAreaField, ReadProgress
+        │                    ("X de Y leram"), Sidebar, Header, FullScreenStatus
         ├── pages/           LoginPage, DashboardPage, NotFoundPage, ForbiddenPage,
         │                    usuarios/ (UsuariosListPage, UsuarioFormPage — criar e editar),
         │                    alunos/ (AlunosListPage, AlunoFormPage, AlunoResponsaveisSection),
         │                    disciplinas/ (lista + formulário), turmas/ (TurmasListPage, TurmaFormPage,
-        │                    TurmaAlunosSection, TurmaProfessoresSection)
+        │                    TurmaAlunosSection, TurmaProfessoresSection), avisos/ (lista, novo, detalhe com
+        │                    controle de leitura), meus-avisos/ (lista e leitura para o responsável)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors)
         └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
                              (estilos compartilhados por todas as listagens e formulários),
@@ -93,6 +96,8 @@ Todas as PKs são `UUID` (`gen_random_uuid()`), todas as tabelas de entidade tê
 | `disciplinas`       | nome, descricao, ativo                                                                               | nome único (case-insensitive) |
 | `aluno_turma`       | aluno_id, turma_id, ano_letivo, ativo                                                                | N:N com histórico; **FK composta (turma_id, ano_letivo)** garante ano coerente com a turma; **aluno ativo em só 1 turma por ano** (índice único parcial) |
 | `professor_turma`   | professor_id (→ usuarios), turma_id, disciplina_id                                                   | trio único; professor e disciplina RESTRICT, turma CASCADE |
+| `avisos`            | titulo, conteudo, autor_id, publico (TODOS/TURMA/ALUNO), turma_id, aluno_id, ativo, publicado_em     | CHECK garante coerência público ↔ alvo; FKs RESTRICT; não é editado depois de publicado |
+| `aviso_destinatarios` | aviso_id, usuario_id, visualizado_em                                                               | PK (aviso_id, usuario_id); snapshot dos destinatários gravado na publicação; CASCADE ao aviso |
 | `pgmigrations`      | controle interno do node-pg-migrate                                                                  | — |
 
 Relacionamentos:
@@ -100,8 +105,9 @@ Relacionamentos:
 - `alunos N — N responsaveis` (via `aluno_responsavel`)
 - `alunos N — N turmas` (via `aluno_turma`, histórico por ano letivo)
 - `usuarios(PROFESSOR) N — N turmas × disciplinas` (via `professor_turma`)
+- `avisos N — N usuarios(RESPONSAVEL)` (via `aviso_destinatarios`, com a data de leitura)
 
-Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`.
+Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`.
 
 ## Implementado
 
@@ -129,9 +135,13 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] **Turmas (Fase 4, ADMIN)**: lista (busca, ano letivo, turno, situação, contagem de alunos/professores), cadastro/edição; na edição, seção **Alunos** (matricular com busca; transferência entre turmas do mesmo ano com confirmação; encerrar matrícula preservando histórico) e seção **Professores e disciplinas** (atribuir professor ativo + disciplina ativa; remover)
 - [x] Ano letivo da turma travado quando já houve matrícula; turma desativada não aceita alterações em alunos/professores
 - [x] Tela do aluno mostra a turma atual (com link); card "Turmas" do dashboard com total real de turmas ativas no ano
-- [x] **Testes automatizados: 113 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes)
+- [x] **Avisos (Fase 5)**: ADMIN publica para todos, uma turma ou um aluno; PROFESSOR só para turmas em que leciona; destinatários = responsáveis ativos e autorizados de alunos ativos, gravados na publicação; publicação sem destinatários é recusada sem gravar nada; arquivar/reativar; detalhe com controle de leitura (lidos/não lidos, data de leitura)
+- [x] **Meus avisos (responsável)**: lista com destaque para não lidos e filtro; abrir o aviso registra a leitura (idempotente); aviso arquivado some
+- [x] Dashboard por perfil: card Avisos real para ADMIN (publicados), PROFESSOR (os dele) e RESPONSAVEL (não lidos)
+- [x] `useEntityLoader` aplicado aos 4 formulários de edição (fim da duplicação de carregamento)
+- [x] **Testes automatizados: 128 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -172,6 +182,17 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 
 O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas ativas).
 
+| Método | Rota | Acesso | Descrição |
+| ------ | ---- | ------ | --------- |
+| GET    | `/api/avisos` | ADMIN, PROFESSOR | Query `page`, `pageSize`, `busca`, `publico`, `ativo`. Professor vê só os próprios. Itens com `totalDestinatarios` e `totalLidos` |
+| POST   | `/api/avisos` | ADMIN, PROFESSOR | `{ titulo, conteudo, publico, turmaId?, alunoId? }` → 201. Professor: só `TURMA` em que leciona (403). Sem destinatários → 400 |
+| GET    | `/api/avisos/:id` | ADMIN, PROFESSOR (próprio) | `{ aviso }` com `destinatarios: [{ usuario, lido, visualizadoEm }]` (não lidos primeiro) |
+| PATCH  | `/api/avisos/:id/ativo` | ADMIN, PROFESSOR (próprio) | Arquivar/reativar |
+| GET    | `/api/me/avisos` | RESPONSAVEL | Avisos ativos destinados ao usuário (`naoLidos=true` filtra) |
+| GET    | `/api/me/avisos/:id` | RESPONSAVEL | Um aviso destinado ao usuário (404 se não for destinatário) |
+| POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura (idempotente: guarda a primeira) |
+| GET    | `/api/me/turmas` | PROFESSOR | Turmas ativas em que leciona, com as disciplinas |
+
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
 
@@ -189,7 +210,6 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 
 Módulos (cada um precisa de backend + frontend + testes):
 - [ ] Notas (nova migration)
-- [ ] Avisos/comunicados + controle de visualização (nova migration)
 - [ ] Ocorrências (nova migration)
 - [ ] Mensagens (nova migration)
 - [ ] Calendário escolar (nova migration)
@@ -207,30 +227,30 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Item "Responsáveis" da sidebar continua "Em breve": hoje responsáveis são geridos em Usuários (perfil Responsável) + vínculos na tela do aluno. Decidir se vale uma tela própria (ex.: lista de responsáveis com seus alunos).
 - [ ] Aluno sem nenhum responsável não tem alerta além do selo "Sem responsável" na lista.
 - [ ] Ao salvar um registro, a lista volta sem os filtros que estavam aplicados.
-- [ ] Formulários de edição repetem o mesmo trecho de "carregar registro + estados loading/notfound/error" (usuário, aluno, disciplina, turma). Extrair um hook (ex.: `useEntityLoader`) antes de criar mais telas.
-- [ ] Professores ainda não têm nenhuma tela própria (ex.: "minhas turmas"); hoje todo o cadastro é do ADMIN.
+- [ ] Professor tem só a tela de avisos; falta "Minhas turmas" (lista de alunos das turmas em que leciona). A API `/api/me/turmas` já existe.
+- [ ] Responsável vinculado a um aluno DEPOIS da publicação não recebe avisos antigos (consequência do snapshot; decidir se precisa de "reenvio").
+- [ ] Notificação fora do sistema (e-mail/push) quando um aviso é publicado.
+- [ ] Anexos em avisos.
 - [ ] Virada de ano letivo (encerrar matrículas do ano anterior em lote) não existe; hoje é turma a turma.
 - [ ] Não existe exclusão definitiva de usuários (de propósito: desativar preserva o histórico).
 
 ## Próxima etapa
 
-**Fase 5 — Avisos/comunicados com controle de visualização.** É o objetivo central do sistema: a escola publica, os responsáveis leem, e a escola sabe quem leu. Agora já existem responsáveis, alunos, vínculos (com "autorizado a receber comunicações") e turmas para definir o público.
+**Fase 6 — Ocorrências.** Registro de ocorrências sobre um aluno (disciplinar, saúde, elogio, atraso...) feito por professor ou administração, com **ciência do responsável** — reaproveita quase todo o mecanismo dos avisos.
 
-Banco (nova migration, não editar as antigas):
-1. `avisos`: id, titulo, conteudo (texto), autor_id → usuarios, publico (`TODOS` | `TURMA` | `ALUNO`), turma_id (nullable), aluno_id (nullable), publicado_em, ativo, timestamps. CHECK garantindo coerência (TURMA exige turma_id; ALUNO exige aluno_id; TODOS exige os dois nulos).
-2. `aviso_visualizacoes`: aviso_id, usuario_id, visualizado_em; UNIQUE (aviso_id, usuario_id).
+Banco (nova migration):
+1. `ocorrencias`: aluno_id, autor_id, tipo (CHECK: DISCIPLINAR | ATRASO | SAUDE | ELOGIO | OUTRO), descricao, data_ocorrencia, ativo, timestamps.
+2. `ocorrencia_ciencias`: ocorrencia_id, usuario_id (responsável), ciente_em — snapshot dos responsáveis autorizados do aluno no registro (mesma regra de `aviso_destinatarios`).
 
 Backend:
-1. ADMIN e PROFESSOR criam avisos (professor só para turmas em que leciona — usar `professor_turma`).
-2. Destinatários calculados (não gravados): responsáveis **autorizados** de alunos com matrícula ativa na turma / do aluno / de todos os alunos ativos.
-3. Responsável: `GET /api/me/avisos` (só os que se aplicam a ele) e `POST /api/me/avisos/:id/visualizar` (idempotente).
-4. Quem publicou vê o relatório "lido por X de Y" com a lista de quem ainda não leu.
+1. PROFESSOR registra só para alunos das turmas em que leciona; ADMIN para qualquer aluno ativo.
+2. Responsável: `GET /api/me/ocorrencias` e `POST /api/me/ocorrencias/:id/ciencia` ("estou ciente", idempotente).
+3. Reutilizar o SQL de destinatários de `avisoRepository.insertDestinatarios` (extrair para uma função comum que recebe a tabela/colunas ou o conjunto de alunos).
 
 Frontend:
-1. Liberar "Avisos" na sidebar para ADMIN/PROFESSOR (gestão) e uma tela "Meus avisos" para RESPONSAVEL.
-2. Dashboard: card "Avisos" real; para o responsável, avisos não lidos em destaque.
-
-Antes de começar: extrair o hook de carregamento dos formulários (ver Pendências) para não repetir o padrão de novo.
+1. Liberar "Ocorrências" (ADMIN/PROFESSOR) e "Minhas ocorrências" (RESPONSAVEL); na tela do aluno, listar as ocorrências dele.
+2. Card "Ocorrências" real no dashboard por perfil (mesmo padrão `live` por perfil).
+3. Reaproveitar `ReadProgress`, `useEntityLoader`, `usePaginatedList`, `SearchPicker` (escolher aluno).
 
 ## Decisões técnicas
 
@@ -286,3 +306,10 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 48. **Só registros ativos entram em novos vínculos** (aluno ativo na matrícula; professor e disciplina ativos na atribuição; turma ativa para qualquer alteração). Desativar não apaga vínculos existentes.
 49. **Componentes de listagem/relacionamento são compartilhados**: `SearchPicker`, `RowActions`, `useAtivoToggle`, `styles/RelationSection.module.css`, além dos já citados na decisão 44. Novas telas devem usá-los.
 50. **Helpers de backend compartilhados**: `containsPattern` (busca), `toPagination`, `rethrowUniqueAsConflict`, `optionalTextSchema`. Repositories/services novos devem usá-los em vez de reescrever.
+51. **Destinatários de aviso são gravados na publicação (snapshot em `aviso_destinatarios`)**, não calculados na leitura: o relatório "lido por X de Y" fica estável e auditável mesmo se alunos mudarem de turma. Consequência aceita: quem for vinculado depois não recebe avisos antigos.
+52. **Quem recebe**: usuários RESPONSAVEL ativos, com vínculo `autorizado_receber_comunicacoes`, de alunos ativos do público (TODOS = todos os alunos ativos; TURMA = matrícula ativa na turma; ALUNO = o aluno). Publicação com zero destinatários é recusada (400) e desfeita na transação.
+53. **Aviso publicado não é editado**: funciona como mensagem enviada (alguém pode já ter lido). Corrigir = arquivar (`ativo = false`, some para o responsável, mantém histórico) e publicar outro.
+54. **Leitura é registrada ao abrir o aviso** (`POST /me/avisos/:id/visualizar`, idempotente com `COALESCE`): a primeira leitura nunca é sobrescrita.
+55. **Professor publica só para turmas em que leciona** e só vê/arquiva os próprios avisos (aviso de outro autor responde 404, sem revelar que existe).
+56. **Rotas `/api/me/*`** usam sempre `req.user` (nunca id na URL para identificar o usuário) e são autorizadas por perfil.
+57. **Cards do dashboard definem `live` por perfil** (`live: { ADMIN: {...}, RESPONSAVEL: {...} }`); perfil sem `live` vê o card como "Restrito" (se o módulo existe) ou "Em breve".

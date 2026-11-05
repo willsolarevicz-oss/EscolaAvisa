@@ -30,6 +30,24 @@ export function anoLetivoOptions() {
   return [atual + 1, atual, atual - 1, atual - 2].map((ano) => ({ value: String(ano), label: String(ano) }));
 }
 
+/** Público de um aviso em texto: "Todos os responsáveis", "Turma 6º Ano A", "Responsáveis de Lara". */
+export function avisoPublicoLabel(aviso) {
+  if (aviso.publico === 'TURMA') return `Turma ${aviso.turma?.nome ?? aviso.turmaNome ?? ''}`.trim();
+  if (aviso.publico === 'ALUNO') return `Responsáveis de ${aviso.aluno?.nome ?? aviso.alunoNome ?? ''}`.trim();
+  return 'Todos os responsáveis';
+}
+
+export const PUBLICO_OPTIONS = [
+  { value: 'TODOS', label: 'Todos os responsáveis' },
+  { value: 'TURMA', label: 'Uma turma' },
+  { value: 'ALUNO', label: 'Um aluno' },
+];
+
+/** Data e hora curtas: "04/11/2026 19:30". */
+export function formatDateTime(value) {
+  return formatDate(value, { dateStyle: 'short', timeStyle: 'short' });
+}
+
 /** Filtro de situação usado nas listagens (valor vai para ?ativo=). */
 export const ATIVO_FILTER_OPTIONS = [
   { value: '', label: 'Todas as situações' },

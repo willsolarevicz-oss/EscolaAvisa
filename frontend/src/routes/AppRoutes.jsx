@@ -3,7 +3,12 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { SessionAwareLayout } from '../layouts/SessionAwareLayout';
 import { AlunoFormRoute } from '../pages/alunos/AlunoFormPage';
 import { AlunosListPage } from '../pages/alunos/AlunosListPage';
+import { AvisoDetailPage } from '../pages/avisos/AvisoDetailPage';
+import { AvisoFormPage } from '../pages/avisos/AvisoFormPage';
+import { AvisosListPage } from '../pages/avisos/AvisosListPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { MeuAvisoPage } from '../pages/meus-avisos/MeuAvisoPage';
+import { MeusAvisosPage } from '../pages/meus-avisos/MeusAvisosPage';
 import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
 import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
 import { TurmaFormRoute } from '../pages/turmas/TurmaFormPage';
@@ -42,6 +47,17 @@ export function AppRoutes() {
             <Route path="/disciplinas" element={<DisciplinasListPage />} />
             <Route path="/disciplinas/nova" element={<DisciplinaFormRoute />} />
             <Route path="/disciplinas/:id/editar" element={<DisciplinaFormRoute />} />
+          </Route>
+
+          <Route element={<RoleRoute allowedRoles={['ADMIN', 'PROFESSOR']} />}>
+            <Route path="/avisos" element={<AvisosListPage />} />
+            <Route path="/avisos/novo" element={<AvisoFormPage />} />
+            <Route path="/avisos/:id" element={<AvisoDetailPage />} />
+          </Route>
+
+          <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>
+            <Route path="/meus-avisos" element={<MeusAvisosPage />} />
+            <Route path="/meus-avisos/:id" element={<MeuAvisoPage />} />
           </Route>
         </Route>
       </Route>

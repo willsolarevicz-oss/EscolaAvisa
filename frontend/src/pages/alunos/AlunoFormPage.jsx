@@ -1,12 +1,12 @@
-import axios from 'axios';
 import { ArrowLeft, CalendarDays, Hash, Save, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
 import { TextField } from '../../components/TextField';
+import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { createAluno, getAluno, updateAluno } from '../../services/alunoService';
 import { getApiErrorMessage } from '../../services/api';
@@ -56,36 +56,17 @@ export function AlunoFormPage() {
   const [flash, setFlash] = useFlashMessage();
 
   const [form, setForm] = useState(EMPTY_FORM);
-  const [aluno, setAluno] = useState(null);
-  const [loadState, setLoadState] = useState(isEdit ? 'loading' : 'ready'); // loading | ready | notfound | error
-  const [loadError, setLoadError] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [reloadToken, setReloadToken] = useState(0);
 
-  useEffect(() => {
-    if (!isEdit) return undefined;
-    const controller = new AbortController();
-
-    getAluno(id, { signal: controller.signal })
-      .then((data) => {
-        setAluno(data);
-        setForm({ nome: data.nome, matricula: data.matricula, dataNascimento: data.dataNascimento });
-        setLoadState('ready');
-      })
-      .catch((error) => {
-        if (axios.isCancel(error)) return;
-        if (error.response?.status === 404) {
-          setLoadState('notfound');
-        } else {
-          setLoadError(getApiErrorMessage(error, 'Não foi possível carregar o aluno.'));
-          setLoadState('error');
-        }
-      });
-
-    return () => controller.abort();
-  }, [id, isEdit, reloadToken]);
+  const loader = useEntityLoader(getAluno, id, {
+    onLoad: (data) => setForm({ nome: data.nome, matricula: data.matricula, dataNascimento: data.dataNascimento }),
+    errorMessage: 'Não foi possível carregar o aluno.',
+  });
+  const aluno = loader.data;
+  const loadState = isEdit ? loader.status : 'ready';
+  const loadError = loader.errorMessage;
 
   const title = isEdit ? 'Editar aluno' : 'Novo aluno';
   const breadcrumbs = [
@@ -151,7 +132,7 @@ export function AlunoFormPage() {
         <Alert type="error">{loadState === 'notfound' ? 'Aluno não encontrado.' : loadError}</Alert>
         <div className={styles.formActions}>
           {loadState === 'error' && (
-            <Button variant="secondary" onClick={() => setReloadToken((n) => n + 1)}>
+            <Button variant="secondary" onClick={loader.reload}>
               Tentar novamente
             </Button>
           )}

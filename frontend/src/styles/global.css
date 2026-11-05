@@ -86,8 +86,11 @@ h3 {
   letter-spacing: -0.01em;
 }
 
+/* Campos de formulário não herdam a fonte da página por padrão. */
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
   color: inherit;
 }

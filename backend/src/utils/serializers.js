@@ -71,6 +71,47 @@ export function toAtribuicaoResponse(atribuicao) {
   };
 }
 
+/** Aviso visto por quem publica (com contagem de leituras). */
+export function toAvisoResponse(aviso) {
+  return {
+    id: aviso.id,
+    titulo: aviso.titulo,
+    conteudo: aviso.conteudo,
+    publico: aviso.publico,
+    turma: aviso.turma_id ? { id: aviso.turma_id, nome: aviso.turma_nome, anoLetivo: aviso.turma_ano_letivo } : null,
+    aluno: aviso.aluno_id ? { id: aviso.aluno_id, nome: aviso.aluno_nome } : null,
+    autor: { id: aviso.autor_id, nome: aviso.autor_nome },
+    ativo: aviso.ativo,
+    publicadoEm: aviso.publicado_em,
+    totalDestinatarios: aviso.total_destinatarios,
+    totalLidos: aviso.total_lidos,
+  };
+}
+
+export function toDestinatarioResponse(destinatario) {
+  return {
+    usuario: { id: destinatario.usuario_id, nome: destinatario.nome, email: destinatario.email },
+    lido: destinatario.visualizado_em !== null,
+    visualizadoEm: destinatario.visualizado_em,
+  };
+}
+
+/** Aviso visto pelo responsável destinatário (sem dados de outros destinatários). */
+export function toMeuAvisoResponse(aviso) {
+  return {
+    id: aviso.id,
+    titulo: aviso.titulo,
+    conteudo: aviso.conteudo,
+    publico: aviso.publico,
+    turmaNome: aviso.turma_nome,
+    alunoNome: aviso.aluno_nome,
+    autorNome: aviso.autor_nome,
+    publicadoEm: aviso.publicado_em,
+    lido: aviso.visualizado_em !== null,
+    visualizadoEm: aviso.visualizado_em,
+  };
+}
+
 /** Aluno no formato da API. dataNascimento é string AAAA-MM-DD (sem fuso horário). */
 export function toAlunoResponse(aluno) {
   return {

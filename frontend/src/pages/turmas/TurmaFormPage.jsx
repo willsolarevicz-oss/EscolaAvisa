@@ -1,6 +1,5 @@
-import axios from 'axios';
 import { ArrowLeft, CalendarDays, Save, School } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
@@ -8,6 +7,7 @@ import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
+import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { getApiErrorMessage } from '../../services/api';
 import { createTurma, getTurma, updateTurma } from '../../services/turmaService';
@@ -36,38 +36,18 @@ export function TurmaFormPage() {
   const [flash, setFlash] = useFlashMessage();
 
   const [form, setForm] = useState(emptyForm);
-  const [turma, setTurma] = useState(null);
-  const [loadState, setLoadState] = useState(isEdit ? 'loading' : 'ready'); // loading | ready | notfound | error
-  const [loadError, setLoadError] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!isEdit) return undefined;
-    const controller = new AbortController();
-    getTurma(id, { signal: controller.signal })
-      .then((data) => {
-        setTurma(data);
-        setForm({
-          nome: data.nome,
-          anoLetivo: String(data.anoLetivo),
-          turno: data.turno,
-          descricao: data.descricao ?? '',
-        });
-        setLoadState('ready');
-      })
-      .catch((error) => {
-        if (axios.isCancel(error)) return;
-        if (error.response?.status === 404) {
-          setLoadState('notfound');
-        } else {
-          setLoadError(getApiErrorMessage(error, 'Não foi possível carregar a turma.'));
-          setLoadState('error');
-        }
-      });
-    return () => controller.abort();
-  }, [id, isEdit]);
+  const loader = useEntityLoader(getTurma, id, {
+    onLoad: (data) =>
+      setForm({ nome: data.nome, anoLetivo: String(data.anoLetivo), turno: data.turno, descricao: data.descricao ?? '' }),
+    errorMessage: 'Não foi possível carregar a turma.',
+  });
+  const turma = loader.data;
+  const loadState = isEdit ? loader.status : 'ready';
+  const loadError = loader.errorMessage;
 
   const title = isEdit ? 'Editar turma' : 'Nova turma';
   const breadcrumbs = [

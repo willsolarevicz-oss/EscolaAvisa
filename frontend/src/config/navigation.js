@@ -1,4 +1,5 @@
 import {
+  Bell,
   BookOpen,
   CalendarDays,
   ClipboardList,
@@ -26,7 +27,7 @@ export const NAVIGATION = [
     title: 'Acadêmico',
     items: [
       { label: 'Alunos', to: '/alunos', icon: GraduationCap, available: true, roles: ['ADMIN'] },
-      { label: 'Responsáveis', icon: HeartHandshake, available: false },
+      { label: 'Responsáveis', icon: HeartHandshake, available: false, roles: ['ADMIN'] },
       { label: 'Turmas', to: '/turmas', icon: School, available: true, roles: ['ADMIN'] },
       { label: 'Disciplinas', to: '/disciplinas', icon: BookOpen, available: true, roles: ['ADMIN'] },
       { label: 'Notas', icon: NotebookPen, available: false },
@@ -35,7 +36,8 @@ export const NAVIGATION = [
   {
     title: 'Comunicação',
     items: [
-      { label: 'Avisos', icon: Megaphone, available: false },
+      { label: 'Avisos', to: '/avisos', icon: Megaphone, available: true, roles: ['ADMIN', 'PROFESSOR'] },
+      { label: 'Meus avisos', to: '/meus-avisos', icon: Bell, available: true, roles: ['RESPONSAVEL'] },
       { label: 'Ocorrências', icon: ClipboardList, available: false },
       { label: 'Mensagens', icon: MessageSquare, available: false },
       { label: 'Calendário', icon: CalendarDays, available: false },

@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 4 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend, gestão de usuários, alunos com vínculo aos responsáveis, disciplinas e turmas com matrícula e professores (ADMIN).
+> **Status:** Fases 1 a 5 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, e **avisos com controle de leitura** (publicação pela escola/professores e leitura pelos responsáveis).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -188,6 +188,13 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | DELETE | `/api/turmas/:id/alunos/:alunoId` | somente ADMIN | Encerra a matrícula (histórico mantido) |
 | GET/POST | `/api/turmas/:id/professores` | somente ADMIN | Lista / atribui (`professorId`, `disciplinaId`) |
 | DELETE | `/api/turmas/:id/professores/:atribuicaoId` | somente ADMIN | Remove a atribuição |
+| GET/POST | `/api/avisos`    | ADMIN, PROFESSOR | Lista (com contagem de leituras) / publica (`titulo`, `conteudo`, `publico`, `turmaId`/`alunoId`) |
+| GET    | `/api/avisos/:id`  | ADMIN, PROFESSOR | Detalhe com quem leu e quem não leu         |
+| PATCH  | `/api/avisos/:id/ativo` | ADMIN, PROFESSOR | Arquivar / reativar                         |
+| GET    | `/api/me/avisos`   | RESPONSAVEL   | Avisos recebidos (`naoLidos=true` filtra)         |
+| GET    | `/api/me/avisos/:id` | RESPONSAVEL | Um aviso recebido                                 |
+| POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura                  |
+| GET    | `/api/me/turmas`   | PROFESSOR     | Turmas em que o professor leciona                 |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

@@ -78,6 +78,31 @@
   pointer-events: none;
 }
 
+/* Textarea: altura livre, mesmo visual dos inputs. */
+.textareaControl {
+  height: auto;
+  padding: var(--space-3);
+  align-items: stretch;
+}
+
+.textarea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.counter {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
 .hint {
   font-size: 0.8125rem;
   color: var(--color-text-muted);

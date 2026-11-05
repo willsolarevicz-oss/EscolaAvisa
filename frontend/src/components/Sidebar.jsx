@@ -61,7 +61,7 @@ export function Sidebar({ id, open, onClose, tipoUsuario }) {
           ))}
         </nav>
 
-        <p className={styles.footer}>Versão 0.4 · Fase 4</p>
+        <p className={styles.footer}>Versão 0.5 · Fase 5</p>
       </aside>
     </>
   );

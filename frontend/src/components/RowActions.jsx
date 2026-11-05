@@ -3,19 +3,29 @@ import { Button } from './Button';
 import styles from '../styles/ListPage.module.css';
 
 /**
- * Botões de uma linha de listagem: editar + desativar (ou reativar).
+ * Botões de uma linha de listagem: editar (ou "ver") + desativar (ou reativar).
  * `toggle` vem de useAtivoToggle. `canDeactivate=false` esconde o desativar (ex.: o próprio admin).
+ * `editAction` troca o rótulo/ícone do primeiro botão (ex.: { label: 'Ver', icon: Eye });
+ * `deactivateLabel` troca o verbo de desativar (ex.: "Arquivar" para avisos).
  */
-export function RowActions({ item, label, editTo, toggle, canDeactivate = true }) {
+export function RowActions({
+  item,
+  label,
+  editTo,
+  toggle,
+  canDeactivate = true,
+  editAction = { label: 'Editar', icon: Pencil },
+  deactivateLabel = 'Desativar',
+}) {
   return (
     <div className={styles.rowActions}>
       <Button
         variant="secondary"
         size="sm"
-        icon={Pencil}
+        icon={editAction.icon}
         to={editTo}
-        aria-label={`Editar ${label}`}
-        title="Editar"
+        aria-label={`${editAction.label} ${label}`}
+        title={editAction.label}
       />
       {item.ativo ? (
         canDeactivate && (
@@ -25,8 +35,8 @@ export function RowActions({ item, label, editTo, toggle, canDeactivate = true }
             icon={ToggleRight}
             onClick={() => toggle.askToDeactivate(item)}
             disabled={toggle.busy}
-            aria-label={`Desativar ${label}`}
-            title="Desativar"
+            aria-label={`${deactivateLabel} ${label}`}
+            title={deactivateLabel}
           />
         )
       ) : (
