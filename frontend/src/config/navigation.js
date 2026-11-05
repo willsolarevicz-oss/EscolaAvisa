@@ -25,7 +25,7 @@ export const NAVIGATION = [
   {
     title: 'Acadêmico',
     items: [
-      { label: 'Alunos', icon: GraduationCap, available: false },
+      { label: 'Alunos', to: '/alunos', icon: GraduationCap, available: true, roles: ['ADMIN'] },
       { label: 'Responsáveis', icon: HeartHandshake, available: false },
       { label: 'Turmas', icon: School, available: false },
       { label: 'Disciplinas', icon: BookOpen, available: false },

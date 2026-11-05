@@ -16,7 +16,7 @@ import {
   updateUsuario,
 } from '../../services/usuarioService';
 import { maskCpf, maskTelefone, ROLE_OPTIONS, roleLabel } from '../../utils/formatters';
-import styles from './UsuarioFormPage.module.css';
+import styles from '../../styles/FormPage.module.css';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TIPO_OPTIONS = [{ value: '', label: 'Selecione o perfil' }, ...ROLE_OPTIONS];

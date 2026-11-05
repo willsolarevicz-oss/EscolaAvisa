@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-04 — fim da Fase 2 (gestão de usuários). Branch: `feat/fase-2-usuarios`.
+> Última atualização: 2026-11-04 — fim da Fase 3 (alunos e vínculo com responsáveis). Branch: `feat/fase-3-alunos`.
 
 ---
 
@@ -34,27 +34,34 @@ escola-avisa/
 │       ├── repositories/    SQL puro, um arquivo por tabela/agregado
 │       ├── services/        regras de negócio (não conhecem req/res)
 │       ├── controllers/     traduzem HTTP <-> service
-│       ├── validators/      schemas zod (commonValidators: e-mail, senha, telefone, CPF reutilizáveis)
+│       ├── validators/      schemas zod (commonValidators: nome, e-mail, senha, telefone, CPF,
+│       │                    listQueryShape e setAtivoSchema reutilizáveis)
 │       ├── middlewares/     authenticate, authorize, validateBody/validateQuery, rate limit, errorHandler
 │       ├── routes/          index.js agrega tudo sob /api
-│       ├── utils/           AppError, jwt, password, serializers, uuid (isUuid), cpf (isValidCpf)
+│       ├── utils/           AppError, jwt, password, serializers, uuid (isUuid), cpf (isValidCpf),
+│       │                    dbErrors (rethrowUniqueAsConflict: UNIQUE → 409 com campo)
 │       ├── app.js           monta o Express (sem listen; usado pelos testes)
 │       └── server.js        checa o banco, faz listen e shutdown gracioso
 └── frontend/
     └── src/
         ├── config/          navigation.js (itens da sidebar e quais estão disponíveis)
         ├── contexts/        authContext.js (contexto + status) e AuthProvider.jsx (lógica da sessão)
-        ├── hooks/           useAuth, useApiHealth, useDebouncedValue
-        ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService
+        ├── hooks/           useAuth, useApiHealth, useDebouncedValue, usePaginatedList (listagem com
+        │                    filtros na URL), useFlashMessage (mensagem entre páginas)
+        ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
+        │                    alunoService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
         ├── components/      Logo, Button (aceita `to`), TextField, SelectField, Alert, Badge, PageHeader
-        │                    (título + breadcrumbs), Pagination, ConfirmDialog (<dialog>), Sidebar, Header, FullScreenStatus
+        │                    (título + breadcrumbs), Pagination, ConfirmDialog (<dialog>), CheckboxField, Sidebar, Header,
+        │                    FullScreenStatus
         ├── pages/           LoginPage, DashboardPage, NotFoundPage, ForbiddenPage,
-        │                    usuarios/ (UsuariosListPage, UsuarioFormPage — criar e editar)
+        │                    usuarios/ (UsuariosListPage, UsuarioFormPage — criar e editar),
+        │                    alunos/ (AlunosListPage, AlunoFormPage, AlunoResponsaveisSection)
         ├── utils/           tokenStorage (token + expiresAt), formatters
-        └── styles/          global.css (design tokens em variáveis CSS)
+        └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
+                             (estilos compartilhados por todas as listagens e formulários)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
@@ -111,9 +118,11 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] Sidebar com todos os módulos futuros (desabilitados com "Em breve"), gaveta em tablet/celular (fecha com Esc/clique fora)
 - [x] Dashboard sem números falsos ("—" + "Em breve"); painel de status com dados reais do `/api/health`
 - [x] **Gestão de usuários (Fase 2, somente ADMIN)**: listagem com busca, filtro por perfil/situação e paginação (filtros na URL); criar (responsável grava `responsaveis` na mesma transação); editar nome/e-mail/telefone/CPF; ativar/desativar com confirmação; redefinir senha; política de senha; CPF validado pelos dígitos verificadores; máscaras de CPF/telefone; rota e item da sidebar só para ADMIN; breadcrumbs
-- [x] **Testes automatizados: 76 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação)
+- [x] **Alunos e vínculos (Fase 3, somente ADMIN)**: listagem (busca por nome/matrícula, situação, paginação, contagem de responsáveis com alerta "Sem responsável"); cadastro e edição (matrícula em maiúsculas, data de nascimento sem problema de fuso, idade calculada); ativar/desativar; na edição, seção Responsáveis: buscar responsável ativo, vincular com parentesco/principal/autorizado, editar e remover vínculo; troca de principal em transação
+- [x] Card "Alunos" do dashboard com total real de alunos ativos (ADMIN); para outros perfis aparece como "Restrito"
+- [x] **Testes automatizados: 91 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -130,6 +139,15 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 | PUT    | `/api/usuarios/:id` | ADMIN | `{ nome, email, telefone?, cpf? }`. Perfil é imutável (enviar `tipoUsuario` → 400) |
 | PATCH  | `/api/usuarios/:id/ativo` | ADMIN | `{ ativo: boolean }`. Admin não pode desativar a si mesmo (400) |
 | PATCH  | `/api/usuarios/:id/senha` | ADMIN | `{ senha }` (política: 8+ caracteres, letra e número) |
+| GET    | `/api/alunos` | ADMIN | Query `page`, `pageSize`, `busca` (nome ou matrícula), `ativo` → `{ items, pagination }`; cada item tem `totalResponsaveis` |
+| POST   | `/api/alunos` | ADMIN | `{ nome, dataNascimento: "AAAA-MM-DD", matricula }` → 201 `{ aluno }`. 409 matrícula repetida |
+| GET    | `/api/alunos/:id` | ADMIN | `{ aluno }` com `responsaveis` (vínculos) incluídos |
+| PUT    | `/api/alunos/:id` | ADMIN | Mesmo corpo do POST |
+| PATCH  | `/api/alunos/:id/ativo` | ADMIN | `{ ativo: boolean }` |
+| GET    | `/api/alunos/:id/responsaveis` | ADMIN | `{ responsaveis }` (principal primeiro) |
+| POST   | `/api/alunos/:id/responsaveis` | ADMIN | `{ usuarioId, parentesco, responsavelPrincipal?, autorizadoReceberComunicacoes? }` → 201 `{ vinculo }`. Usuário precisa ser RESPONSAVEL ativo (400); repetido → 409 |
+| PUT    | `/api/alunos/:id/responsaveis/:vinculoId` | ADMIN | `{ parentesco, responsavelPrincipal, autorizadoReceberComunicacoes }` |
+| DELETE | `/api/alunos/:id/responsaveis/:vinculoId` | ADMIN | Remove só o vínculo (o usuário responsável continua existindo) |
 
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
@@ -147,8 +165,6 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 ## Pendências
 
 Módulos (cada um precisa de backend + frontend + testes):
-- [ ] CRUD de alunos
-- [ ] CRUD de responsáveis + vínculo aluno ↔ responsável
 - [ ] CRUD de turmas e disciplinas + matrícula aluno ↔ turma + atribuição professor ↔ turma/disciplina
 - [ ] Notas (nova migration)
 - [ ] Avisos/comunicados + controle de visualização (nova migration)
@@ -165,28 +181,31 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Achados da revisão de código ainda não aplicados: `migrate:down` sem confirmação; `catch` vazio em `tokenStorage.get/clear`; estado "deslogado" repetido no `AuthProvider`; 404 repete estilos do `Button`.
 - [ ] Alterar senha / "esqueci minha senha"
 - [ ] Testes automatizados do frontend (Vitest + Testing Library)
-- [ ] Busca de usuários não ignora acentos ("joao" não acha "João"). Solução: extensão `unaccent` em uma migration.
-- [ ] Ao salvar um usuário, a lista volta sem os filtros que estavam aplicados.
+- [ ] Buscas (usuários e alunos) não ignoram acentos ("joao" não acha "João"). Solução: extensão `unaccent` em uma migration.
+- [ ] Item "Responsáveis" da sidebar continua "Em breve": hoje responsáveis são geridos em Usuários (perfil Responsável) + vínculos na tela do aluno. Decidir se vale uma tela própria (ex.: lista de responsáveis com seus alunos).
+- [ ] Aluno sem nenhum responsável não tem alerta além do selo "Sem responsável" na lista.
+- [ ] Ao salvar um usuário/aluno, a lista volta sem os filtros que estavam aplicados.
 - [ ] Não existe exclusão definitiva de usuários (de propósito: desativar preserva o histórico).
 
 ## Próxima etapa
 
-**Fase 3 — Alunos e vínculo com responsáveis (ADMIN).** É o centro da comunicação escola ↔ família: os responsáveis já existem (Fase 2) e os avisos futuros dependem de saber quem é responsável por quem.
+**Fase 4 — Turmas, disciplinas, matrícula e atribuição de professores (ADMIN).** As tabelas já existem (`turmas`, `disciplinas`, `aluno_turma`, `professor_turma`); avisos e notas da fase seguinte dependem de saber quem estuda e quem leciona em cada turma.
 
-Seguir o padrão da Fase 2 (mesma estrutura de `usuarios`):
+Seguir o padrão das Fases 2 e 3 (repository → service → validators → routes; `usePaginatedList`, `ListPage`/`FormPage` no frontend):
 
 Backend:
-1. `alunoRepository` (lista paginada com busca por nome/matrícula e filtro ativo, findById, create, update, setAtivo) e `alunoResponsavelRepository` (listar vínculos do aluno com dados do responsável, vincular, atualizar parentesco/principal/autorizado, desvincular).
-2. `alunoService`: matrícula única (409); validar que o responsável pertence a um usuário RESPONSAVEL **ativo**; ao marcar um vínculo como principal, desmarcar o anterior **na mesma transação** (o índice único parcial impede dois principais).
-3. Rotas `/api/alunos` (GET, POST, GET/:id, PUT/:id, PATCH/:id/ativo) e `/api/alunos/:id/responsaveis` (GET, POST, PUT/:vinculoId, DELETE/:vinculoId), todas com `authorize(ROLES.ADMIN)`.
-4. Testes em `backend/tests/alunos.test.js`.
+1. `/api/disciplinas`: CRUD simples (nome único sem diferenciar maiúsculas → 409 `disciplinas_nome_unique`), ativar/desativar.
+2. `/api/turmas`: CRUD (nome, ano letivo, turno MATUTINO/VESPERTINO/NOTURNO/INTEGRAL, descrição), filtros por ano letivo e turno; 409 `turmas_nome_ano_turno_unique`.
+3. `/api/turmas/:id/alunos`: matricular (POST `{ alunoId }`, `ano_letivo` = o da turma), listar, desmatricular/transferir (`ativo = false`; o índice único parcial impede duas turmas ativas no mesmo ano → 409 com mensagem clara).
+4. `/api/turmas/:id/professores`: atribuir `{ professorId, disciplinaId }` (validar perfil PROFESSOR ativo e disciplina ativa), listar, remover.
+5. Testes: `turmas.test.js` e `disciplinas.test.js`.
 
 Frontend:
-1. `/alunos` (lista igual à de usuários), `/alunos/novo` e `/alunos/:id/editar` com seção "Responsáveis" (buscar responsável por nome/e-mail; parentesco; principal; autorizado a receber comunicações).
-2. Liberar "Alunos" na sidebar (`to`, `available: true`, `roles: ['ADMIN']`) e as rotas dentro do `RoleRoute`.
-3. Card "Alunos" do dashboard passa a mostrar o total real (via `pagination.total`).
+1. `/disciplinas` (lista + formulário simples) e `/turmas` (lista com filtro de ano/turno; edição com seções "Alunos" e "Professores", no mesmo estilo de `AlunoResponsaveisSection`).
+2. Na edição do aluno, mostrar a turma atual (somente leitura).
+3. Card "Turmas" do dashboard com total real; liberar Turmas e Disciplinas na sidebar (`roles: ['ADMIN']`).
 
-Depois: **Fase 4** — turmas, disciplinas, matrícula aluno ↔ turma e atribuição professor ↔ turma/disciplina.
+Depois: **Fase 5** — avisos/comunicados com controle de visualização (nova migration).
 
 ## Decisões técnicas
 
@@ -229,3 +248,10 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 35. **Admin não pode desativar a si mesmo**: garante que sempre exista pelo menos um admin ativo.
 36. **CPF e telefone trafegam e são gravados só com dígitos**; a máscara existe apenas na interface.
 37. **Mensagens sobre pessoas usam frases neutras** ("Acesso de Maria desativado"), sem presumir gênero pelo nome.
+38. **Vínculo aluno ↔ responsável é feito pelo `usuarioId`** (o que o admin escolhe na busca de usuários); o backend garante o registro em `responsaveis` (`ensureForUsuario`). Só usuários RESPONSAVEL **ativos** podem ser vinculados.
+39. **Um único responsável principal por aluno**: marcar outro como principal desmarca o anterior na mesma transação (`clearPrincipal`); o índice único parcial do banco é a última barreira.
+40. **Matrícula é gravada em maiúsculas** (aceita letras, números, `.`, `/`, `-`), evitando duplicatas que só diferem na caixa.
+41. **Datas sem horário (ex.: `data_nascimento`) trafegam como string `AAAA-MM-DD`** (parser do `pg` em `pool.js`) e são formatadas no frontend sem `new Date()` (`formatDateOnly`), para não "voltar um dia" por causa do fuso.
+42. **Após cadastrar um aluno, a tela vai para a edição dele**, onde ficam os vínculos (o aluno precisa existir antes de vincular).
+43. **Remover vínculo é exclusão definitiva só da linha de `aluno_responsavel`**; alunos e usuários continuam com exclusão lógica (`ativo`).
+44. **Listagens e formulários reutilizam** `usePaginatedList`, `useFlashMessage`, `styles/ListPage.module.css` e `styles/FormPage.module.css`. Não copiar esses trechos em novas páginas.

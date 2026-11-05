@@ -117,6 +117,16 @@
   color: var(--color-text-subtle);
 }
 
+/* Valor vindo da API (não é placeholder): cor normal do texto. */
+.cardValueReal {
+  color: var(--color-text);
+}
+
+.cardLink {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .cardHint {
   margin-top: var(--space-1);
   color: var(--color-text-subtle);

@@ -11,6 +11,40 @@ export function roleLabel(tipoUsuario) {
 /** Opções de perfil para selects, na ordem de exibição. */
 export const ROLE_OPTIONS = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
 
+/** Filtro de situação usado nas listagens (valor vai para ?ativo=). */
+export const ATIVO_FILTER_OPTIONS = [
+  { value: '', label: 'Todas as situações' },
+  { value: 'true', label: 'Ativos' },
+  { value: 'false', label: 'Inativos' },
+];
+
+/**
+ * Data sem horário ("2015-03-10") → "10/03/2015".
+ * Não usa `new Date()`: ela interpretaria como meia-noite UTC e, no Brasil, mostraria o dia anterior.
+ */
+export function formatDateOnly(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? '');
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : '—';
+}
+
+/** Idade completa em anos a partir de "AAAA-MM-DD" (data local de hoje). */
+export function calcAge(dateOnly) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly ?? '');
+  if (!match) return null;
+  const [, year, month, day] = match.map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const birthdayPassed =
+    today.getMonth() + 1 > month || (today.getMonth() + 1 === month && today.getDate() >= day);
+  if (!birthdayPassed) age -= 1;
+  return age;
+}
+
+/** Data local de hoje em AAAA-MM-DD (para o atributo `max` de input type="date"). */
+export function todayIso() {
+  return new Date().toLocaleDateString('sv-SE');
+}
+
 function onlyDigits(value = '') {
   return String(value).replace(/\D/g, '');
 }

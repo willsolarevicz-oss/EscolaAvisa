@@ -21,6 +21,11 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Listagens com menos filtros (busca + situação). */
+.filtersCompact {
+  grid-template-columns: minmax(220px, 1fr) 200px auto;
+}
+
 .feedback {
   padding: var(--space-4) var(--space-5) 0;
 }
@@ -147,6 +152,11 @@
 .empty {
   padding: var(--space-10) var(--space-5);
   text-align: center;
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-subtle);
 }
 
 .emptyTitle {

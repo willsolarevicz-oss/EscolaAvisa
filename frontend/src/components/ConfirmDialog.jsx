@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { Button } from './Button';
 import styles from './ConfirmDialog.module.css';
 
@@ -17,6 +17,8 @@ export function ConfirmDialog({
   onCancel,
 }) {
   const dialogRef = useRef(null);
+  // Id único: pode haver mais de um diálogo na mesma página.
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -29,14 +31,14 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       className={styles.dialog}
-      aria-labelledby="confirm-dialog-title"
+      aria-labelledby={titleId}
       // Esc dispara "cancel": avisamos o pai em vez de deixar o <dialog> fechar sozinho.
       onCancel={(event) => {
         event.preventDefault();
         if (!loading) onCancel();
       }}
     >
-      <h2 id="confirm-dialog-title" className={styles.title}>
+      <h2 id={titleId} className={styles.title}>
         {title}
       </h2>
       <div className={styles.body}>{children}</div>

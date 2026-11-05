@@ -52,6 +52,11 @@
   gap: var(--space-5);
 }
 
+/* Campo que ocupa a linha inteira do grid (ex.: nome). */
+.fullRow {
+  grid-column: 1 / -1;
+}
+
 .fieldset {
   margin: 0;
   padding: var(--space-5) 0 0;

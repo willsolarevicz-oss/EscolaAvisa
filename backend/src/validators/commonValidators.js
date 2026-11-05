@@ -1,6 +1,41 @@
 import { z } from 'zod';
 import { isValidCpf } from '../utils/cpf.js';
 
+export const personNameSchema = z
+  .string({ error: 'Informe o nome.' })
+  .trim()
+  .min(2, 'O nome deve ter pelo menos 2 caracteres.')
+  .max(150, 'Nome muito longo (máximo 150 caracteres).');
+
+/** Campos de query comuns às listagens paginadas (`{ items, pagination }`). */
+export const listQueryShape = {
+  page: z.coerce
+    .number({ error: 'Página inválida.' })
+    .int('Página inválida.')
+    .min(1, 'Página inválida.')
+    .default(1),
+  pageSize: z.coerce
+    .number({ error: 'Tamanho de página inválido.' })
+    .int('Tamanho de página inválido.')
+    .min(1, 'Tamanho de página inválido.')
+    .max(100, 'Tamanho de página máximo: 100.')
+    .default(20),
+  busca: z
+    .string({ error: 'Busca inválida.' })
+    .trim()
+    .max(100, 'Busca muito longa.')
+    .optional()
+    .transform((value) => value || undefined),
+  ativo: z
+    .enum(['true', 'false'], { error: 'Situação inválida (use true ou false).' })
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
+};
+
+export const setAtivoSchema = z.object({
+  ativo: z.boolean({ error: 'Informe "ativo" como true ou false.' }),
+});
+
 export const emailSchema = z
   .string({ error: 'Informe o e-mail.' })
   .trim()

@@ -8,13 +8,17 @@ import {
   School,
   Server,
 } from 'lucide-react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { Badge } from '../components/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
+import { listAlunos } from '../services/alunoService';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
 import styles from './DashboardPage.module.css';
 
-// Os módulos ainda não têm endpoints: mostramos "—" em vez de números inventados.
+// Módulos sem endpoint mostram "—" em vez de números inventados. Alunos é real (ver AlunosCard).
 const MODULE_CARDS = [
   { label: 'Alunos', icon: GraduationCap, tone: 'blue' },
   { label: 'Turmas', icon: School, tone: 'green' },
@@ -73,8 +77,49 @@ function SystemStatus() {
   );
 }
 
+/** Card com o total REAL de alunos ativos (só para ADMIN, que é quem acessa /api/alunos). */
+function AlunosCard({ icon: Icon, tone }) {
+  const [state, setState] = useState({ status: 'loading', total: null });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    // pageSize=1: só precisamos do total que vem na paginação.
+    listAlunos({ ativo: 'true', pageSize: 1 }, { signal: controller.signal })
+      .then((data) => setState({ status: 'ok', total: data.pagination.total }))
+      .catch((error) => {
+        if (!axios.isCancel(error)) setState({ status: 'error', total: null });
+      });
+    return () => controller.abort();
+  }, []);
+
+  const hint = {
+    loading: 'Carregando...',
+    ok: state.total === 1 ? 'aluno ativo' : 'alunos ativos',
+    error: 'Não foi possível carregar',
+  }[state.status];
+
+  return (
+    <article className={styles.card}>
+      <div className={styles.cardTop}>
+        <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
+          <Icon size={20} />
+        </span>
+        <Link to="/alunos" className={styles.cardLink}>
+          Ver alunos
+        </Link>
+      </div>
+      <p className={styles.cardLabel}>Alunos</p>
+      <p className={`${styles.cardValue} ${state.status === 'ok' ? styles.cardValueReal : ''}`}>
+        {state.status === 'ok' ? state.total : '—'}
+      </p>
+      <p className={styles.cardHint}>{hint}</p>
+    </article>
+  );
+}
+
 export function DashboardPage() {
   const { user } = useAuth();
+  const isAdmin = user.tipoUsuario === 'ADMIN';
 
   return (
     <div className={styles.page}>
@@ -91,27 +136,46 @@ export function DashboardPage() {
       <div className={styles.notice} role="note">
         <Construction size={18} aria-hidden="true" />
         <p>
-          <strong>Estrutura inicial.</strong> Os indicadores abaixo serão preenchidos com dados reais quando cada
-          módulo for implementado.
+          <strong>Em construção.</strong> Os indicadores marcados como “Em breve” serão preenchidos com dados reais
+          quando cada módulo for implementado.
         </p>
       </div>
 
       <section className={styles.cards} aria-label="Indicadores dos módulos">
-        {MODULE_CARDS.map(({ label, icon: Icon, tone }) => (
-          <article key={label} className={styles.card}>
-            <div className={styles.cardTop}>
-              <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
-                <Icon size={20} />
-              </span>
-              <span className={styles.soon}>Em breve</span>
-            </div>
-            <p className={styles.cardLabel}>{label}</p>
-            <p className={styles.cardValue} aria-label={`${label}: sem dados ainda`}>
-              —
-            </p>
-            <p className={styles.cardHint}>Módulo ainda não implementado</p>
-          </article>
-        ))}
+        {MODULE_CARDS.map(({ label, icon: Icon, tone }) =>
+          label === 'Alunos' && isAdmin ? (
+            <AlunosCard key={label} icon={Icon} tone={tone} />
+          ) : label === 'Alunos' ? (
+            // O módulo existe, mas só a administração acessa: não é "não implementado".
+            <article key={label} className={styles.card}>
+              <div className={styles.cardTop}>
+                <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
+                  <Icon size={20} />
+                </span>
+                <span className={styles.soon}>Restrito</span>
+              </div>
+              <p className={styles.cardLabel}>{label}</p>
+              <p className={styles.cardValue} aria-label={`${label}: disponível apenas para a administração`}>
+                —
+              </p>
+              <p className={styles.cardHint}>Disponível para a administração</p>
+            </article>
+          ) : (
+            <article key={label} className={styles.card}>
+              <div className={styles.cardTop}>
+                <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
+                  <Icon size={20} />
+                </span>
+                <span className={styles.soon}>Em breve</span>
+              </div>
+              <p className={styles.cardLabel}>{label}</p>
+              <p className={styles.cardValue} aria-label={`${label}: sem dados ainda`}>
+                —
+              </p>
+              <p className={styles.cardHint}>Módulo ainda não implementado</p>
+            </article>
+          ),
+        )}
       </section>
 
       <div className={styles.panels}>

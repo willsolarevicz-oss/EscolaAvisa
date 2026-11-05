@@ -10,6 +10,18 @@ export async function findByUsuarioId(usuarioId, db = pool) {
 }
 
 /**
+ * Garante que o usuário tenha o registro em `responsaveis` (sem alterar dados existentes)
+ * e devolve o id dele. Usado ao vincular um responsável a um aluno.
+ */
+export async function ensureForUsuario(usuarioId, db = pool) {
+  await db.query(
+    'INSERT INTO responsaveis (usuario_id) VALUES ($1) ON CONFLICT (usuario_id) DO NOTHING',
+    [usuarioId],
+  );
+  return (await findByUsuarioId(usuarioId, db)).id;
+}
+
+/**
  * Cria ou atualiza os dados de responsável de um usuário.
  * Upsert porque usuários RESPONSAVEL criados fora da API (ex.: SQL manual) podem não ter o registro.
  */

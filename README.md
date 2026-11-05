@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 e 2 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend e gestão de usuários (ADMIN).
+> **Status:** Fases 1 a 3 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend, gestão de usuários e cadastro de alunos com vínculo aos responsáveis (ADMIN).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -171,6 +171,13 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | PUT    | `/api/usuarios/:id` | somente ADMIN | Edita nome, e-mail, telefone/CPF (perfil é imutável) |
 | PATCH  | `/api/usuarios/:id/ativo` | somente ADMIN | Ativa/desativa (`{ "ativo": true/false }`) |
 | PATCH  | `/api/usuarios/:id/senha` | somente ADMIN | Redefine a senha (8+ caracteres, letra e número) |
+| GET    | `/api/alunos`      | somente ADMIN | Lista paginada (`page`, `pageSize`, `busca`, `ativo`) |
+| POST   | `/api/alunos`      | somente ADMIN | Cadastra aluno (`nome`, `dataNascimento` AAAA-MM-DD, `matricula`) |
+| GET    | `/api/alunos/:id`  | somente ADMIN | Detalhe do aluno com os responsáveis vinculados |
+| PUT    | `/api/alunos/:id`  | somente ADMIN | Edita os dados do aluno                         |
+| PATCH  | `/api/alunos/:id/ativo` | somente ADMIN | Ativa/desativa                              |
+| GET/POST | `/api/alunos/:id/responsaveis` | somente ADMIN | Lista / vincula responsável (`usuarioId`, `parentesco`, principal, autorizado) |
+| PUT/DELETE | `/api/alunos/:id/responsaveis/:vinculoId` | somente ADMIN | Edita / remove o vínculo |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

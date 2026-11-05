@@ -3,6 +3,7 @@ import { withTransaction } from '../database/transaction.js';
 import * as responsavelRepository from '../repositories/responsavelRepository.js';
 import * as usuarioRepository from '../repositories/usuarioRepository.js';
 import { AppError } from '../utils/AppError.js';
+import { rethrowUniqueAsConflict } from '../utils/dbErrors.js';
 import { hashPassword } from '../utils/password.js';
 import { toUsuarioDetailResponse, toUsuarioResponse } from '../utils/serializers.js';
 import { isUuid } from '../utils/uuid.js';
@@ -15,13 +16,7 @@ const UNIQUE_MESSAGES = {
   responsaveis_cpf_unique: { field: 'cpf', message: 'Já existe um responsável com este CPF.' },
 };
 
-function rethrowAsConflict(error) {
-  const known = error.code === '23505' && UNIQUE_MESSAGES[error.constraint];
-  if (known) {
-    throw new AppError(known.message, 409, [{ field: known.field, message: known.message }]);
-  }
-  throw error;
-}
+const rethrowAsConflict = (error) => rethrowUniqueAsConflict(error, UNIQUE_MESSAGES);
 
 async function findExistingOrFail(id) {
   // Id malformado é tratado como inexistente (404), sem chegar ao banco.
