@@ -1,0 +1,113 @@
+/* Tela da conversa: mensagens em balões (minhas à direita) + campo de resposta. */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  list-style: none;
+  margin: 0;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 78%;
+}
+
+.mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border-top-left-radius: 4px;
+  background: var(--color-surface-muted);
+  white-space: pre-wrap; /* mantém as quebras de linha digitadas */
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.mine .bubble {
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: 4px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.messageMeta {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: 4px;
+  padding: 0 4px;
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+}
+
+.author {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.read {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-success);
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.composerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.hint {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+/* Lista de conversas: quem/aluno à esquerda, quando e não lidas à direita. */
+.feedSide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .thread {
+    padding: var(--space-4);
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .composer {
+    padding: var(--space-4);
+  }
+
+  .composerActions > button {
+    width: 100%;
+  }
+
+  .hint {
+    display: none;
+  }
+}

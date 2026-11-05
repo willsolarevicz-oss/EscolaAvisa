@@ -219,3 +219,37 @@ export function toEventoResponse(evento, podeEditar = false) {
     atualizadoEm: evento.atualizado_em,
   };
 }
+
+/** Conversa vista por um dos lados (`naoLidas` e `lidaPeloOutroLadoEm` são do ponto de vista de quem consulta). */
+export function toConversaResponse(conversa) {
+  return {
+    id: conversa.id,
+    assunto: conversa.assunto,
+    canal: conversa.canal,
+    aluno: { id: conversa.aluno_id, nome: conversa.aluno_nome },
+    responsavel: { id: conversa.responsavel_usuario_id, nome: conversa.responsavel_nome },
+    professor: conversa.professor_usuario_id
+      ? { id: conversa.professor_usuario_id, nome: conversa.professor_nome }
+      : null,
+    iniciadaPorId: conversa.iniciada_por,
+    ultimaMensagem: conversa.ultima_conteudo
+      ? { conteudo: conversa.ultima_conteudo, autorNome: conversa.ultima_autor_nome }
+      : null,
+    ultimaMensagemEm: conversa.ultima_mensagem_em,
+    naoLidas: conversa.nao_lidas,
+    lidaPeloOutroLadoEm: conversa.lida_outro_lado_em,
+    criadoEm: conversa.criado_em,
+  };
+}
+
+/** `minha`: enviada por quem consulta; `lado`: de que lado da conversa veio. */
+export function toMensagemResponse(mensagem, usuarioId) {
+  return {
+    id: mensagem.id,
+    conteudo: mensagem.conteudo,
+    enviadaEm: mensagem.enviada_em,
+    autor: { id: mensagem.autor_id, nome: mensagem.autor_nome },
+    lado: mensagem.do_responsavel ? 'RESPONSAVEL' : 'ESCOLA',
+    minha: mensagem.autor_id === usuarioId,
+  };
+}
