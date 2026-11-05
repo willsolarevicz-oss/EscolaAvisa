@@ -6,6 +6,7 @@ import { AppError } from '../utils/AppError.js';
 import { rethrowUniqueAsConflict } from '../utils/dbErrors.js';
 import { hashPassword } from '../utils/password.js';
 import { toUsuarioDetailResponse, toUsuarioResponse } from '../utils/serializers.js';
+import { toPagination } from '../utils/pagination.js';
 import { isUuid } from '../utils/uuid.js';
 
 const NOT_FOUND_MESSAGE = 'Usuário não encontrado.';
@@ -44,7 +45,7 @@ export async function listUsuarios({ page, pageSize, busca, tipo, ativo }) {
 
   return {
     items: rows.map(toUsuarioResponse),
-    pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+    pagination: toPagination({ page, pageSize, total }),
   };
 }
 

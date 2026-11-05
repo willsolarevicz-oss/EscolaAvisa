@@ -2,11 +2,13 @@ import { ROLES } from '../config/roles.js';
 import { withTransaction } from '../database/transaction.js';
 import * as alunoRepository from '../repositories/alunoRepository.js';
 import * as alunoResponsavelRepository from '../repositories/alunoResponsavelRepository.js';
+import * as alunoTurmaRepository from '../repositories/alunoTurmaRepository.js';
 import * as responsavelRepository from '../repositories/responsavelRepository.js';
 import * as usuarioRepository from '../repositories/usuarioRepository.js';
 import { AppError } from '../utils/AppError.js';
 import { rethrowUniqueAsConflict } from '../utils/dbErrors.js';
 import { toAlunoResponse, toVinculoResponse } from '../utils/serializers.js';
+import { toPagination } from '../utils/pagination.js';
 import { isUuid } from '../utils/uuid.js';
 
 const ALUNO_NOT_FOUND = 'Aluno não encontrado.';
@@ -57,15 +59,22 @@ export async function listAlunos({ page, pageSize, busca, ativo }) {
   const { rows, total } = await alunoRepository.list({ page, pageSize, busca, ativo });
   return {
     items: rows.map(toAlunoResponse),
-    pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+    pagination: toPagination({ page, pageSize, total }),
   };
 }
 
 /** Detalhe do aluno já com os responsáveis vinculados (a tela de edição usa os dois). */
 export async function getAluno(id) {
   const aluno = await findAlunoOrFail(id);
-  const vinculos = await alunoResponsavelRepository.listByAluno(id);
-  return { ...toAlunoResponse(aluno), responsaveis: vinculos.map(toVinculoResponse) };
+  const [vinculos, turmas] = await Promise.all([
+    alunoResponsavelRepository.listByAluno(id),
+    alunoTurmaRepository.listTurmasAtivasByAluno(id),
+  ]);
+  return {
+    ...toAlunoResponse(aluno),
+    responsaveis: vinculos.map(toVinculoResponse),
+    turmas: turmas.map((t) => ({ id: t.id, nome: t.nome, anoLetivo: t.ano_letivo, turno: t.turno, ativo: t.ativo })),
+  };
 }
 
 export async function createAluno(data) {

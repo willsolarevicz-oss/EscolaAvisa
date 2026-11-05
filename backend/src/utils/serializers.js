@@ -11,6 +11,66 @@ export function toUsuarioResponse(usuario) {
   };
 }
 
+export function toDisciplinaResponse(disciplina) {
+  return {
+    id: disciplina.id,
+    nome: disciplina.nome,
+    descricao: disciplina.descricao,
+    ativo: disciplina.ativo,
+    criadoEm: disciplina.criado_em,
+    atualizadoEm: disciplina.atualizado_em,
+  };
+}
+
+export function toTurmaResponse(turma) {
+  return {
+    id: turma.id,
+    nome: turma.nome,
+    anoLetivo: turma.ano_letivo,
+    turno: turma.turno,
+    descricao: turma.descricao,
+    ativo: turma.ativo,
+    totalAlunos: turma.total_alunos,
+    totalProfessores: turma.total_professores,
+    criadoEm: turma.criado_em,
+    atualizadoEm: turma.atualizado_em,
+  };
+}
+
+/** Matrícula ativa de um aluno em uma turma (vista a partir da turma). */
+export function toMatriculaResponse(matricula) {
+  return {
+    id: matricula.id,
+    anoLetivo: matricula.ano_letivo,
+    aluno: {
+      id: matricula.aluno_id,
+      nome: matricula.aluno_nome,
+      matricula: matricula.aluno_matricula,
+      ativo: matricula.aluno_ativo,
+    },
+    criadoEm: matricula.criado_em,
+  };
+}
+
+/** Professor ↔ disciplina em uma turma. */
+export function toAtribuicaoResponse(atribuicao) {
+  return {
+    id: atribuicao.id,
+    professor: {
+      id: atribuicao.professor_id,
+      nome: atribuicao.professor_nome,
+      email: atribuicao.professor_email,
+      ativo: atribuicao.professor_ativo,
+    },
+    disciplina: {
+      id: atribuicao.disciplina_id,
+      nome: atribuicao.disciplina_nome,
+      ativo: atribuicao.disciplina_ativo,
+    },
+    criadoEm: atribuicao.criado_em,
+  };
+}
+
 /** Aluno no formato da API. dataNascimento é string AAAA-MM-DD (sem fuso horário). */
 export function toAlunoResponse(aluno) {
   return {

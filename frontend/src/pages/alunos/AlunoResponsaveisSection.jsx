@@ -1,36 +1,33 @@
-import axios from 'axios';
-import { Link2, Pencil, Search, Trash2, UserPlus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Link2, Pencil, Trash2, UserPlus, X } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { CheckboxField } from '../../components/CheckboxField';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { SearchPicker } from '../../components/SearchPicker';
 import { TextField } from '../../components/TextField';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { createVinculo, listVinculos, removeVinculo, updateVinculo } from '../../services/alunoService';
 import { getApiErrorMessage } from '../../services/api';
+import { toFieldErrors } from '../../utils/apiErrors';
 import { listUsuarios } from '../../services/usuarioService';
 import { getInitials, maskTelefone } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
-import styles from './AlunoResponsaveisSection.module.css';
+import styles from '../../styles/RelationSection.module.css';
 
 const PARENTESCO_SUGESTOES = [
   'Mãe', 'Pai', 'Avó', 'Avô', 'Tia', 'Tio', 'Irmã', 'Irmão', 'Madrasta', 'Padrasto', 'Tutor(a) legal', 'Outro',
 ];
-const SEARCH_PAGE_SIZE = 6;
 
-function toFieldErrors(error) {
-  const list = error?.response?.data?.errors;
-  if (!Array.isArray(list)) return {};
-  return Object.fromEntries(list.filter((e) => e.field).map((e) => [e.field, e.message]));
-}
+// Só responsáveis ativos: vincular um usuário desativado é recusado pelo backend.
+const buscarResponsaveis = (busca, { signal }) =>
+  listUsuarios({ tipo: 'RESPONSAVEL', ativo: 'true', pageSize: 6, busca }, { signal }).then((data) => data.items);
 
 /** Campos comuns a "vincular" e "editar vínculo". */
 function VinculoFields({ values, onChange, errors, disabled }) {
   return (
-    <div className={styles.vinculoFields}>
+    <div className={styles.fields}>
       <TextField
         label="Parentesco"
         name="parentesco"
@@ -65,11 +62,8 @@ function VinculoFields({ values, onChange, errors, disabled }) {
   );
 }
 
-/** Painel "Vincular responsável": busca um usuário RESPONSAVEL ativo e define o vínculo. */
+/** Painel "Vincular responsável": escolhe um usuário RESPONSAVEL ativo e define o vínculo. */
 function AddVinculoPanel({ alunoId, vinculos, onCancel, onSaved }) {
-  const [busca, setBusca] = useState('');
-  const debouncedBusca = useDebouncedValue(busca.trim());
-  const [search, setSearch] = useState({ key: null, items: [], error: null });
   const [selected, setSelected] = useState(null);
   const [values, setValues] = useState({
     parentesco: '',
@@ -80,23 +74,6 @@ function AddVinculoPanel({ alunoId, vinculos, onCancel, onSaved }) {
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);
-
-  // Só busca responsáveis ativos: vincular um usuário desativado é recusado pelo backend.
-  useEffect(() => {
-    const controller = new AbortController();
-    const params = { tipo: 'RESPONSAVEL', ativo: 'true', pageSize: SEARCH_PAGE_SIZE, busca: debouncedBusca || undefined };
-
-    listUsuarios(params, { signal: controller.signal })
-      .then((data) => setSearch({ key: debouncedBusca, items: data.items, error: null }))
-      .catch((error) => {
-        if (axios.isCancel(error)) return;
-        setSearch({ key: debouncedBusca, items: [], error: getApiErrorMessage(error, 'Não foi possível buscar.') });
-      });
-
-    return () => controller.abort();
-  }, [debouncedBusca]);
-
-  const searching = search.key !== debouncedBusca;
   const linkedIds = new Set(vinculos.map((v) => v.responsavel.usuarioId));
 
   async function handleSubmit(event) {
@@ -169,40 +146,16 @@ function AddVinculoPanel({ alunoId, vinculos, onCancel, onSaved }) {
         </>
       ) : (
         <>
-          <TextField
+          <SearchPicker
             label="Buscar responsável"
-            icon={Search}
-            type="search"
             placeholder="Nome ou e-mail do responsável"
-            value={busca}
-            onChange={(event) => setBusca(event.target.value)}
-            autoFocus
-            maxLength={100}
+            fetchItems={buscarResponsaveis}
+            getTitle={(usuario) => usuario.nome}
+            getSubtitle={(usuario) => usuario.email}
+            getDisabledReason={(usuario) => (linkedIds.has(usuario.id) ? 'Já vinculado' : null)}
+            onSelect={setSelected}
+            emptyMessage="Nenhum responsável ativo encontrado."
           />
-          {search.error && <Alert type="error">{search.error}</Alert>}
-          <ul className={`${styles.results} ${searching ? styles.loading : ''}`} aria-busy={searching}>
-            {search.items.map((usuario) => {
-              const alreadyLinked = linkedIds.has(usuario.id);
-              return (
-                <li key={usuario.id} className={styles.result}>
-                  <div className={styles.personText}>
-                    <strong>{usuario.nome}</strong>
-                    <span>{usuario.email}</span>
-                  </div>
-                  {alreadyLinked ? (
-                    <Badge tone="neutral">Já vinculado</Badge>
-                  ) : (
-                    <Button variant="secondary" size="sm" onClick={() => setSelected(usuario)}>
-                      Selecionar
-                    </Button>
-                  )}
-                </li>
-              );
-            })}
-            {!searching && !search.error && search.items.length === 0 && (
-              <li className={styles.noResults}>Nenhum responsável ativo encontrado.</li>
-            )}
-          </ul>
           <p className={styles.hint}>
             Não encontrou? Cadastre o responsável em <Link to="/usuarios/novo">Usuários → Novo usuário</Link> (perfil
             Responsável) e volte aqui.
@@ -242,7 +195,12 @@ function EditVinculoForm({ alunoId, vinculo, onCancel, onSaved }) {
   }
 
   return (
-    <form className={styles.inlineForm} onSubmit={handleSubmit} noValidate aria-label={`Editar vínculo de ${vinculo.responsavel.nome}`}>
+    <form
+      className={styles.inlineForm}
+      onSubmit={handleSubmit}
+      noValidate
+      aria-label={`Editar vínculo de ${vinculo.responsavel.nome}`}
+    >
       {submitError && <Alert type="error">{submitError}</Alert>}
       <VinculoFields
         values={values}
@@ -295,6 +253,11 @@ export function AlunoResponsaveisSection({ alunoId, alunoNome, initialVinculos }
     }
   }
 
+  function startMode(nextMode) {
+    setMode(nextMode);
+    setFeedback(null);
+  }
+
   return (
     <section className={formStyles.card} aria-labelledby="responsaveis-title">
       <div className={formStyles.cardHeader}>
@@ -302,7 +265,7 @@ export function AlunoResponsaveisSection({ alunoId, alunoNome, initialVinculos }
           Responsáveis
         </h3>
         {mode !== 'add' && (
-          <Button size="sm" icon={UserPlus} onClick={() => { setMode('add'); setFeedback(null); }}>
+          <Button size="sm" icon={UserPlus} onClick={() => startMode('add')}>
             Vincular responsável
           </Button>
         )}
@@ -359,7 +322,7 @@ export function AlunoResponsaveisSection({ alunoId, alunoNome, initialVinculos }
                         variant="secondary"
                         size="sm"
                         icon={Pencil}
-                        onClick={() => { setMode(vinculo.id); setFeedback(null); }}
+                        onClick={() => startMode(vinculo.id)}
                         aria-label={`Editar vínculo de ${vinculo.responsavel.nome}`}
                         title="Editar vínculo"
                       />

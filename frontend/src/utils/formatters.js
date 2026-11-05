@@ -11,6 +11,25 @@ export function roleLabel(tipoUsuario) {
 /** Opções de perfil para selects, na ordem de exibição. */
 export const ROLE_OPTIONS = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
 
+const TURNO_LABELS = {
+  MATUTINO: 'Matutino',
+  VESPERTINO: 'Vespertino',
+  NOTURNO: 'Noturno',
+  INTEGRAL: 'Integral',
+};
+
+export function turnoLabel(turno) {
+  return TURNO_LABELS[turno] ?? turno;
+}
+
+export const TURNO_OPTIONS = Object.entries(TURNO_LABELS).map(([value, label]) => ({ value, label }));
+
+/** Anos para filtros/seleção: próximo, atual e dois anteriores (ordem decrescente). */
+export function anoLetivoOptions() {
+  const atual = new Date().getFullYear();
+  return [atual + 1, atual, atual - 1, atual - 2].map((ano) => ({ value: String(ano), label: String(ano) }));
+}
+
 /** Filtro de situação usado nas listagens (valor vai para ?ativo=). */
 export const ATIVO_FILTER_OPTIONS = [
   { value: '', label: 'Todas as situações' },

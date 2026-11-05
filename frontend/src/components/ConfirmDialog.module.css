@@ -23,6 +23,10 @@
   font-size: 0.95rem;
 }
 
+.body p + p {
+  margin-top: var(--space-2);
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

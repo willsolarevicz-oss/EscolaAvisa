@@ -15,13 +15,38 @@ import { Badge } from '../components/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { useApiHealth } from '../hooks/useApiHealth';
 import { listAlunos } from '../services/alunoService';
+import { listTurmas } from '../services/turmaService';
 import { formatDate, getFirstName, roleLabel } from '../utils/formatters';
 import styles from './DashboardPage.module.css';
 
-// Módulos sem endpoint mostram "—" em vez de números inventados. Alunos é real (ver AlunosCard).
+const anoAtual = new Date().getFullYear();
+
+// Cards com `live` mostram totais REAIS da API (só para ADMIN, que é quem acessa esses endpoints).
+// Os demais mostram "—": nunca exibimos números inventados.
 const MODULE_CARDS = [
-  { label: 'Alunos', icon: GraduationCap, tone: 'blue' },
-  { label: 'Turmas', icon: School, tone: 'green' },
+  {
+    label: 'Alunos',
+    icon: GraduationCap,
+    tone: 'blue',
+    live: {
+      // pageSize=1: só precisamos do total que vem na paginação.
+      fetchTotal: (signal) => listAlunos({ ativo: 'true', pageSize: 1 }, { signal }),
+      to: '/alunos',
+      linkLabel: 'Ver alunos',
+      hint: (total) => (total === 1 ? 'aluno ativo' : 'alunos ativos'),
+    },
+  },
+  {
+    label: 'Turmas',
+    icon: School,
+    tone: 'green',
+    live: {
+      fetchTotal: (signal) => listTurmas({ ativo: 'true', anoLetivo: anoAtual, pageSize: 1 }, { signal }),
+      to: '/turmas',
+      linkLabel: 'Ver turmas',
+      hint: (total) => `${total === 1 ? 'turma ativa' : 'turmas ativas'} em ${anoAtual}`,
+    },
+  },
   { label: 'Avisos', icon: Megaphone, tone: 'amber' },
   { label: 'Ocorrências', icon: ClipboardList, tone: 'red' },
 ];
@@ -77,42 +102,68 @@ function SystemStatus() {
   );
 }
 
-/** Card com o total REAL de alunos ativos (só para ADMIN, que é quem acessa /api/alunos). */
-function AlunosCard({ icon: Icon, tone }) {
+function CardIcon({ icon: Icon, tone }) {
+  return (
+    <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
+      <Icon size={20} />
+    </span>
+  );
+}
+
+/** Card com total real vindo da API. */
+function CountCard({ label, icon, tone, live }) {
   const [state, setState] = useState({ status: 'loading', total: null });
+  const { fetchTotal } = live;
 
   useEffect(() => {
     const controller = new AbortController();
-    // pageSize=1: só precisamos do total que vem na paginação.
-    listAlunos({ ativo: 'true', pageSize: 1 }, { signal: controller.signal })
+    fetchTotal(controller.signal)
       .then((data) => setState({ status: 'ok', total: data.pagination.total }))
       .catch((error) => {
         if (!axios.isCancel(error)) setState({ status: 'error', total: null });
       });
     return () => controller.abort();
-  }, []);
+  }, [fetchTotal]);
 
   const hint = {
     loading: 'Carregando...',
-    ok: state.total === 1 ? 'aluno ativo' : 'alunos ativos',
+    ok: live.hint(state.total),
     error: 'Não foi possível carregar',
   }[state.status];
 
   return (
     <article className={styles.card}>
       <div className={styles.cardTop}>
-        <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
-          <Icon size={20} />
-        </span>
-        <Link to="/alunos" className={styles.cardLink}>
-          Ver alunos
+        <CardIcon icon={icon} tone={tone} />
+        <Link to={live.to} className={styles.cardLink}>
+          {live.linkLabel}
         </Link>
       </div>
-      <p className={styles.cardLabel}>Alunos</p>
+      <p className={styles.cardLabel}>{label}</p>
       <p className={`${styles.cardValue} ${state.status === 'ok' ? styles.cardValueReal : ''}`}>
         {state.status === 'ok' ? state.total : '—'}
       </p>
       <p className={styles.cardHint}>{hint}</p>
+    </article>
+  );
+}
+
+/** Card sem dado: módulo ainda não implementado ("Em breve") ou só da administração ("Restrito"). */
+function PlaceholderCard({ label, icon, tone, restricted }) {
+  return (
+    <article className={styles.card}>
+      <div className={styles.cardTop}>
+        <CardIcon icon={icon} tone={tone} />
+        <span className={styles.soon}>{restricted ? 'Restrito' : 'Em breve'}</span>
+      </div>
+      <p className={styles.cardLabel}>{label}</p>
+      <p
+        className={styles.cardValue}
+        aria-label={`${label}: ${restricted ? 'disponível apenas para a administração' : 'sem dados ainda'}`}
+      >
+        —
+      </p>
+      <p className={styles.cardHint}>{restricted ? 'Disponível para a administração' : 'Módulo ainda não implementado'}</p>
     </article>
   );
 }
@@ -142,38 +193,12 @@ export function DashboardPage() {
       </div>
 
       <section className={styles.cards} aria-label="Indicadores dos módulos">
-        {MODULE_CARDS.map(({ label, icon: Icon, tone }) =>
-          label === 'Alunos' && isAdmin ? (
-            <AlunosCard key={label} icon={Icon} tone={tone} />
-          ) : label === 'Alunos' ? (
-            // O módulo existe, mas só a administração acessa: não é "não implementado".
-            <article key={label} className={styles.card}>
-              <div className={styles.cardTop}>
-                <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
-                  <Icon size={20} />
-                </span>
-                <span className={styles.soon}>Restrito</span>
-              </div>
-              <p className={styles.cardLabel}>{label}</p>
-              <p className={styles.cardValue} aria-label={`${label}: disponível apenas para a administração`}>
-                —
-              </p>
-              <p className={styles.cardHint}>Disponível para a administração</p>
-            </article>
+        {MODULE_CARDS.map((card) =>
+          card.live && isAdmin ? (
+            <CountCard key={card.label} {...card} />
           ) : (
-            <article key={label} className={styles.card}>
-              <div className={styles.cardTop}>
-                <span className={`${styles.cardIcon} ${styles[`tone_${tone}`]}`} aria-hidden="true">
-                  <Icon size={20} />
-                </span>
-                <span className={styles.soon}>Em breve</span>
-              </div>
-              <p className={styles.cardLabel}>{label}</p>
-              <p className={styles.cardValue} aria-label={`${label}: sem dados ainda`}>
-                —
-              </p>
-              <p className={styles.cardHint}>Módulo ainda não implementado</p>
-            </article>
+            // Módulo existente mas restrito à administração não é "não implementado".
+            <PlaceholderCard key={card.label} {...card} restricted={Boolean(card.live)} />
           ),
         )}
       </section>

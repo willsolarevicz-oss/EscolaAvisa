@@ -32,6 +32,16 @@ export const listQueryShape = {
     .transform((value) => (value === undefined ? undefined : value === 'true')),
 };
 
+/** Texto livre opcional (ex.: descrição). Vazio vira null. */
+export function optionalTextSchema(max, label = 'Texto') {
+  return z
+    .string({ error: `${label} inválido(a).` })
+    .trim()
+    .max(max, `${label} muito longo(a) (máximo ${max} caracteres).`)
+    .nullish()
+    .transform((value) => value || null);
+}
+
 export const setAtivoSchema = z.object({
   ativo: z.boolean({ error: 'Informe "ativo" como true ou false.' }),
 });

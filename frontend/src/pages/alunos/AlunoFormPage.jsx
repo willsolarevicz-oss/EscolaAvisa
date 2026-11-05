@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ArrowLeft, CalendarDays, Hash, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
@@ -10,7 +10,8 @@ import { TextField } from '../../components/TextField';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { createAluno, getAluno, updateAluno } from '../../services/alunoService';
 import { getApiErrorMessage } from '../../services/api';
-import { todayIso } from '../../utils/formatters';
+import { toFieldErrors } from '../../utils/apiErrors';
+import { todayIso, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import { AlunoResponsaveisSection } from './AlunoResponsaveisSection';
 
@@ -32,10 +33,20 @@ function validateForm(form) {
   return errors;
 }
 
-function toFieldErrors(error) {
-  const list = error?.response?.data?.errors;
-  if (!Array.isArray(list)) return {};
-  return Object.fromEntries(list.filter((e) => e.field).map((e) => [e.field, e.message]));
+/** Turma(s) com matrícula ativa — a matrícula é feita na tela da turma. */
+function TurmaAtual({ turmas }) {
+  if (!turmas?.length) return <>Sem turma no momento. A matrícula é feita em Turmas.</>;
+  return (
+    <>
+      Turma atual:{' '}
+      {turmas.map((turma, index) => (
+        <span key={turma.id}>
+          {index > 0 && ', '}
+          <Link to={`/turmas/${turma.id}/editar`}>{turma.nome}</Link> ({turma.anoLetivo} · {turnoLabel(turma.turno)})
+        </span>
+      ))}
+    </>
+  );
 }
 
 export function AlunoFormPage() {
@@ -156,7 +167,7 @@ export function AlunoFormPage() {
     <div className={styles.page}>
       <PageHeader
         title={title}
-        description={isEdit ? 'Atualize os dados do aluno e gerencie os responsáveis.' : 'Cadastre os dados do aluno.'}
+        description={isEdit ? <TurmaAtual turmas={aluno.turmas} /> : 'Cadastre os dados do aluno.'}
         breadcrumbs={breadcrumbs}
       />
 

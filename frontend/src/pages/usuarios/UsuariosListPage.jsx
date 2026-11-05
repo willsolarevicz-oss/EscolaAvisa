@@ -1,17 +1,17 @@
-import { Pencil, RefreshCw, Search, UserCheck, UserPlus, UserX, X } from 'lucide-react';
-import { useState } from 'react';
+import { RefreshCw, Search, UserPlus, X } from 'lucide-react';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
+import { RowActions } from '../../components/RowActions';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
+import { useAtivoToggle } from '../../hooks/useAtivoToggle';
 import { useAuth } from '../../hooks/useAuth';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { usePaginatedList } from '../../hooks/usePaginatedList';
-import { getApiErrorMessage } from '../../services/api';
 import { listUsuarios, setUsuarioAtivo } from '../../services/usuarioService';
 import { ATIVO_FILTER_OPTIONS, formatDate, getInitials, ROLE_OPTIONS, roleLabel } from '../../utils/formatters';
 import styles from '../../styles/ListPage.module.css';
@@ -25,23 +25,15 @@ export function UsuariosListPage() {
   const list = usePaginatedList(listUsuarios, { errorMessage: 'Não foi possível carregar os usuários.' });
   const { items, pagination, loading, error } = list;
 
-  const [confirmTarget, setConfirmTarget] = useState(null);
-  const [togglingId, setTogglingId] = useState(null);
-
-  async function changeAtivo(usuario, novoAtivo) {
-    setTogglingId(usuario.id);
-    try {
-      await setUsuarioAtivo(usuario.id, novoAtivo);
-      // Frase neutra: não sabemos o gênero da pessoa pelo nome.
-      setFlash({ type: 'success', message: `Acesso de ${usuario.nome} ${novoAtivo ? 'reativado' : 'desativado'}.` });
-      list.reload();
-    } catch (requestError) {
-      setFlash({ type: 'error', message: getApiErrorMessage(requestError, 'Não foi possível alterar a situação.') });
-    } finally {
-      setTogglingId(null);
-      setConfirmTarget(null);
-    }
-  }
+  const toggle = useAtivoToggle({
+    setAtivo: setUsuarioAtivo,
+    // Frase neutra: não sabemos o gênero da pessoa pelo nome.
+    successMessage: (usuario, novoAtivo) => `Acesso de ${usuario.nome} ${novoAtivo ? 'reativado' : 'desativado'}.`,
+    onDone: (message) => {
+      setFlash(message);
+      if (message.type === 'success') list.reload();
+    },
+  });
 
   return (
     <div className={styles.page}>
@@ -152,40 +144,13 @@ export function UsuariosListPage() {
                       {formatDate(usuario.criadoEm, { dateStyle: 'medium' })}
                     </td>
                     <td className={styles.actionsCell}>
-                      <div className={styles.rowActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          icon={Pencil}
-                          to={`/usuarios/${usuario.id}/editar`}
-                          aria-label={`Editar ${usuario.nome}`}
-                          title="Editar"
-                        />
-                        {usuario.ativo ? (
-                          !isSelf && (
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              icon={UserX}
-                              onClick={() => setConfirmTarget(usuario)}
-                              disabled={togglingId !== null}
-                              aria-label={`Desativar ${usuario.nome}`}
-                              title="Desativar"
-                            />
-                          )
-                        ) : (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={UserCheck}
-                            onClick={() => changeAtivo(usuario, true)}
-                            loading={togglingId === usuario.id}
-                            disabled={togglingId !== null}
-                            aria-label={`Ativar ${usuario.nome}`}
-                            title="Ativar"
-                          />
-                        )}
-                      </div>
+                      <RowActions
+                        item={usuario}
+                        label={usuario.nome}
+                        editTo={`/usuarios/${usuario.id}/editar`}
+                        toggle={toggle}
+                        canDeactivate={!isSelf}
+                      />
                     </td>
                   </tr>
                 );
@@ -213,16 +178,16 @@ export function UsuariosListPage() {
       </section>
 
       <ConfirmDialog
-        open={confirmTarget !== null}
+        open={toggle.confirmTarget !== null}
         title="Desativar usuário?"
         confirmLabel="Desativar"
         confirmVariant="danger"
-        loading={togglingId !== null}
-        onCancel={() => setConfirmTarget(null)}
-        onConfirm={() => changeAtivo(confirmTarget, false)}
+        loading={toggle.busy}
+        onCancel={toggle.cancelDeactivate}
+        onConfirm={toggle.confirmDeactivate}
       >
         <p>
-          <strong>{confirmTarget?.nome}</strong> perderá o acesso ao sistema imediatamente, inclusive sessões já
+          <strong>{toggle.confirmTarget?.nome}</strong> perderá o acesso ao sistema imediatamente, inclusive sessões já
           abertas. Você pode reativar o acesso depois.
         </p>
       </ConfirmDialog>

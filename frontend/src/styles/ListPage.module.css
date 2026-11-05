@@ -21,6 +21,11 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Listagens com mais filtros (busca + 3 selects). */
+.filtersWide {
+  grid-template-columns: minmax(200px, 1fr) 160px 170px 180px auto;
+}
+
 /* Listagens com menos filtros (busca + situação). */
 .filtersCompact {
   grid-template-columns: minmax(220px, 1fr) 200px auto;
@@ -230,13 +235,14 @@
   }
 
   /* Rótulo de cada campo, vindo do data-label. */
-  .table td[data-label]:not([data-label='Usuário'])::before {
+  /* A primeira coluna é o "título" do cartão (nome); as demais mostram o rótulo à esquerda. */
+  .table td[data-label]:not(:first-child)::before {
     content: attr(data-label);
     color: var(--color-text-muted);
     font-size: 0.8rem;
   }
 
-  .table td[data-label='Usuário'] {
+  .table td:first-child {
     margin-bottom: var(--space-2);
   }
 

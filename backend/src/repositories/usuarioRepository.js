@@ -1,4 +1,5 @@
 import { pool } from '../database/pool.js';
+import { containsPattern } from '../database/sqlHelpers.js';
 
 // Colunas públicas: senha_hash fica de fora para não vazar por engano.
 const PUBLIC_COLUMNS = 'id, nome, email, tipo_usuario, ativo, criado_em, atualizado_em';
@@ -19,11 +20,6 @@ export async function findByEmailWithPasswordHash(email) {
   return rows[0] ?? null;
 }
 
-// % e _ são curingas do LIKE: escapamos para a busca ser literal (ex.: "joao_silva").
-function escapeLike(value) {
-  return value.replace(/[\\%_]/g, '\\$&');
-}
-
 /**
  * Lista paginada. Filtros opcionais: busca (nome ou e-mail), tipoUsuario, ativo.
  * @returns {Promise<{ rows: object[], total: number }>}
@@ -33,7 +29,7 @@ export async function list({ page, pageSize, busca, tipoUsuario, ativo }) {
   const params = [];
 
   if (busca) {
-    params.push(`%${escapeLike(busca)}%`);
+    params.push(containsPattern(busca));
     conditions.push(`(nome ILIKE $${params.length} OR email ILIKE $${params.length})`);
   }
   if (tipoUsuario) {

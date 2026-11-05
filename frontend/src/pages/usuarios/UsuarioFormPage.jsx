@@ -9,6 +9,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
 import { getApiErrorMessage } from '../../services/api';
+import { toFieldErrors } from '../../utils/apiErrors';
 import {
   createUsuario,
   getUsuario,
@@ -73,13 +74,6 @@ function validateForm(form, { isEdit, tipoUsuario }) {
     if (cpf && cpf.length !== 11) errors.cpf = 'O CPF deve ter 11 dígitos.';
   }
   return errors;
-}
-
-/** Converte a lista `errors` do backend ({ field, message }) em erros por campo. */
-function toFieldErrors(error) {
-  const list = error?.response?.data?.errors;
-  if (!Array.isArray(list)) return {};
-  return Object.fromEntries(list.filter((e) => e.field).map((e) => [e.field, e.message]));
 }
 
 /** Bloco "Redefinir senha" (só na edição). */

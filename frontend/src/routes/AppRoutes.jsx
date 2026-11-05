@@ -4,6 +4,10 @@ import { SessionAwareLayout } from '../layouts/SessionAwareLayout';
 import { AlunoFormRoute } from '../pages/alunos/AlunoFormPage';
 import { AlunosListPage } from '../pages/alunos/AlunosListPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
+import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
+import { TurmaFormRoute } from '../pages/turmas/TurmaFormPage';
+import { TurmasListPage } from '../pages/turmas/TurmasListPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { UsuarioFormRoute } from '../pages/usuarios/UsuarioFormPage';
@@ -32,6 +36,12 @@ export function AppRoutes() {
             <Route path="/alunos" element={<AlunosListPage />} />
             <Route path="/alunos/novo" element={<AlunoFormRoute />} />
             <Route path="/alunos/:id/editar" element={<AlunoFormRoute />} />
+            <Route path="/turmas" element={<TurmasListPage />} />
+            <Route path="/turmas/nova" element={<TurmaFormRoute />} />
+            <Route path="/turmas/:id/editar" element={<TurmaFormRoute />} />
+            <Route path="/disciplinas" element={<DisciplinasListPage />} />
+            <Route path="/disciplinas/nova" element={<DisciplinaFormRoute />} />
+            <Route path="/disciplinas/:id/editar" element={<DisciplinaFormRoute />} />
           </Route>
         </Route>
       </Route>

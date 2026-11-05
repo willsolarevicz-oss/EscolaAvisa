@@ -1,17 +1,17 @@
-import { GraduationCap, Pencil, RefreshCw, Search, UserCheck, UserPlus, UserX, X } from 'lucide-react';
-import { useState } from 'react';
+import { GraduationCap, RefreshCw, Search, UserPlus, X } from 'lucide-react';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
+import { RowActions } from '../../components/RowActions';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
+import { useAtivoToggle } from '../../hooks/useAtivoToggle';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { usePaginatedList } from '../../hooks/usePaginatedList';
 import { listAlunos, setAlunoAtivo } from '../../services/alunoService';
-import { getApiErrorMessage } from '../../services/api';
 import { ATIVO_FILTER_OPTIONS, calcAge, formatDateOnly, getInitials } from '../../utils/formatters';
 import styles from '../../styles/ListPage.module.css';
 
@@ -25,22 +25,14 @@ export function AlunosListPage() {
   const list = usePaginatedList(listAlunos, { errorMessage: 'Não foi possível carregar os alunos.' });
   const { items, pagination, loading, error } = list;
 
-  const [confirmTarget, setConfirmTarget] = useState(null);
-  const [togglingId, setTogglingId] = useState(null);
-
-  async function changeAtivo(aluno, novoAtivo) {
-    setTogglingId(aluno.id);
-    try {
-      await setAlunoAtivo(aluno.id, novoAtivo);
-      setFlash({ type: 'success', message: `Cadastro de ${aluno.nome} ${novoAtivo ? 'reativado' : 'desativado'}.` });
-      list.reload();
-    } catch (requestError) {
-      setFlash({ type: 'error', message: getApiErrorMessage(requestError, 'Não foi possível alterar a situação.') });
-    } finally {
-      setTogglingId(null);
-      setConfirmTarget(null);
-    }
-  }
+  const toggle = useAtivoToggle({
+    setAtivo: setAlunoAtivo,
+    successMessage: (aluno, novoAtivo) => `Cadastro de ${aluno.nome} ${novoAtivo ? 'reativado' : 'desativado'}.`,
+    onDone: (message) => {
+      setFlash(message);
+      if (message.type === 'success') list.reload();
+    },
+  });
 
   return (
     <div className={styles.page}>
@@ -142,38 +134,7 @@ export function AlunosListPage() {
                       <Badge tone={aluno.ativo ? 'success' : 'danger'}>{aluno.ativo ? 'Ativo' : 'Inativo'}</Badge>
                     </td>
                     <td className={styles.actionsCell}>
-                      <div className={styles.rowActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          icon={Pencil}
-                          to={`/alunos/${aluno.id}/editar`}
-                          aria-label={`Editar ${aluno.nome}`}
-                          title="Editar e gerenciar responsáveis"
-                        />
-                        {aluno.ativo ? (
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            icon={UserX}
-                            onClick={() => setConfirmTarget(aluno)}
-                            disabled={togglingId !== null}
-                            aria-label={`Desativar ${aluno.nome}`}
-                            title="Desativar"
-                          />
-                        ) : (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={UserCheck}
-                            onClick={() => changeAtivo(aluno, true)}
-                            loading={togglingId === aluno.id}
-                            disabled={togglingId !== null}
-                            aria-label={`Reativar ${aluno.nome}`}
-                            title="Reativar"
-                          />
-                        )}
-                      </div>
+                      <RowActions item={aluno} label={aluno.nome} editTo={`/alunos/${aluno.id}/editar`} toggle={toggle} />
                     </td>
                   </tr>
                 );
@@ -202,16 +163,16 @@ export function AlunosListPage() {
       </section>
 
       <ConfirmDialog
-        open={confirmTarget !== null}
+        open={toggle.confirmTarget !== null}
         title="Desativar aluno?"
         confirmLabel="Desativar"
         confirmVariant="danger"
-        loading={togglingId !== null}
-        onCancel={() => setConfirmTarget(null)}
-        onConfirm={() => changeAtivo(confirmTarget, false)}
+        loading={toggle.busy}
+        onCancel={toggle.cancelDeactivate}
+        onConfirm={toggle.confirmDeactivate}
       >
         <p>
-          O cadastro de <strong>{confirmTarget?.nome}</strong> ficará inativo. Os dados e os vínculos com
+          O cadastro de <strong>{toggle.confirmTarget?.nome}</strong> ficará inativo. Os dados e os vínculos com
           responsáveis são mantidos, e você pode reativar depois.
         </p>
       </ConfirmDialog>

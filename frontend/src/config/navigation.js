@@ -27,8 +27,8 @@ export const NAVIGATION = [
     items: [
       { label: 'Alunos', to: '/alunos', icon: GraduationCap, available: true, roles: ['ADMIN'] },
       { label: 'Responsáveis', icon: HeartHandshake, available: false },
-      { label: 'Turmas', icon: School, available: false },
-      { label: 'Disciplinas', icon: BookOpen, available: false },
+      { label: 'Turmas', to: '/turmas', icon: School, available: true, roles: ['ADMIN'] },
+      { label: 'Disciplinas', to: '/disciplinas', icon: BookOpen, available: true, roles: ['ADMIN'] },
       { label: 'Notas', icon: NotebookPen, available: false },
     ],
   },

@@ -1,15 +1,11 @@
 import { pool } from '../database/pool.js';
+import { containsPattern } from '../database/sqlHelpers.js';
 
 // total_responsaveis: quantos responsáveis estão vinculados (ajuda a achar alunos sem responsável).
 const SELECT_ALUNO = `
   SELECT a.id, a.nome, a.data_nascimento, a.matricula, a.ativo, a.criado_em, a.atualizado_em,
          (SELECT COUNT(*)::int FROM aluno_responsavel ar WHERE ar.aluno_id = a.id) AS total_responsaveis
   FROM alunos a`;
-
-// % e _ são curingas do LIKE: escapamos para a busca ser literal.
-function escapeLike(value) {
-  return value.replace(/[\\%_]/g, '\\$&');
-}
 
 export async function findById(id, db = pool) {
   const { rows } = await db.query(`${SELECT_ALUNO} WHERE a.id = $1`, [id]);
@@ -25,7 +21,7 @@ export async function list({ page, pageSize, busca, ativo }) {
   const params = [];
 
   if (busca) {
-    params.push(`%${escapeLike(busca)}%`);
+    params.push(containsPattern(busca));
     conditions.push(`(a.nome ILIKE $${params.length} OR a.matricula ILIKE $${params.length})`);
   }
   if (ativo !== undefined) {

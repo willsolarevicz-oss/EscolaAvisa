@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 3 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend, gestão de usuários e cadastro de alunos com vínculo aos responsáveis (ADMIN).
+> **Status:** Fases 1 a 4 concluídas — infraestrutura, banco de dados, autenticação (JWT), controle de acesso por perfil, base do frontend, gestão de usuários, alunos com vínculo aos responsáveis, disciplinas e turmas com matrícula e professores (ADMIN).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -178,6 +178,16 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | PATCH  | `/api/alunos/:id/ativo` | somente ADMIN | Ativa/desativa                              |
 | GET/POST | `/api/alunos/:id/responsaveis` | somente ADMIN | Lista / vincula responsável (`usuarioId`, `parentesco`, principal, autorizado) |
 | PUT/DELETE | `/api/alunos/:id/responsaveis/:vinculoId` | somente ADMIN | Edita / remove o vínculo |
+| GET/POST | `/api/disciplinas` | somente ADMIN | Lista paginada / cadastra (`nome`, `descricao`) |
+| GET/PUT | `/api/disciplinas/:id` | somente ADMIN | Detalhe / edita                                |
+| PATCH  | `/api/disciplinas/:id/ativo` | somente ADMIN | Ativa/desativa                             |
+| GET/POST | `/api/turmas`    | somente ADMIN | Lista (`busca`, `anoLetivo`, `turno`, `ativo`) / cadastra (`nome`, `anoLetivo`, `turno`, `descricao`) |
+| GET/PUT | `/api/turmas/:id` | somente ADMIN | Detalhe com alunos e professores / edita       |
+| PATCH  | `/api/turmas/:id/ativo` | somente ADMIN | Ativa/desativa                                  |
+| GET/POST | `/api/turmas/:id/alunos` | somente ADMIN | Lista / matricula (`alunoId`, `transferir`) |
+| DELETE | `/api/turmas/:id/alunos/:alunoId` | somente ADMIN | Encerra a matrícula (histórico mantido) |
+| GET/POST | `/api/turmas/:id/professores` | somente ADMIN | Lista / atribui (`professorId`, `disciplinaId`) |
+| DELETE | `/api/turmas/:id/professores/:atribuicaoId` | somente ADMIN | Remove a atribuição |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

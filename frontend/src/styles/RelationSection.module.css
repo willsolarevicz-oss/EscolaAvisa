@@ -125,38 +125,10 @@
   color: var(--color-text);
 }
 
-.results {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  transition: opacity var(--transition);
-}
 
-.loading {
-  opacity: 0.55;
-}
 
-.result {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-surface-muted);
-}
 
-.result:last-child {
-  border-bottom: 0;
-}
 
-.noResults {
-  padding: var(--space-4);
-  color: var(--color-text-muted);
-  text-align: center;
-  font-size: 0.9rem;
-}
 
 .selected {
   display: flex;
@@ -168,11 +140,21 @@
   background: var(--color-surface);
 }
 
-.vinculoFields {
+.fields {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   max-width: 520px;
+}
+
+.fieldError {
+  margin-top: calc(-1 * var(--space-2));
+  font-size: 0.8125rem;
+  color: var(--color-danger);
+}
+
+.personText a {
+  color: var(--color-text);
 }
 
 .hint {
