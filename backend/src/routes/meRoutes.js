@@ -7,6 +7,7 @@ import { authorize } from '../middlewares/authorize.js';
 import { validateQuery } from '../middlewares/validate.js';
 import * as notaController from '../controllers/notaController.js';
 import * as ocorrenciaController from '../controllers/ocorrenciaController.js';
+import * as turmaController from '../controllers/turmaController.js';
 import { meusAvisosQuerySchema } from '../validators/avisoValidators.js';
 import { meusAlunosQuerySchema, minhasOcorrenciasQuerySchema } from '../validators/ocorrenciaValidators.js';
 
@@ -35,4 +36,5 @@ meRoutes.get('/boletim', responsavel, notaController.boletim);
 
 const professor = authorize(ROLES.PROFESSOR);
 meRoutes.get('/turmas', professor, avisoController.minhasTurmas);
+meRoutes.get('/turmas/:turmaId/alunos', professor, turmaController.alunosDaMinhaTurma);
 meRoutes.get('/alunos', professor, validateQuery(meusAlunosQuerySchema), ocorrenciaController.meusAlunos);

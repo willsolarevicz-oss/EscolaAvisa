@@ -10,6 +10,7 @@ import { notificarMudancaContadores } from '../../services/contadorService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
 import styles from '../../styles/Comunicado.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 /** Leitura de um aviso pelo responsável. Abrir a página registra a visualização. */
 export function MeuAvisoPage() {
@@ -32,7 +33,7 @@ export function MeuAvisoPage() {
 
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Meus avisos', to: '/meus-avisos' },
+    { label: 'Meus avisos', to: urlDaLista('/meus-avisos') },
     { label: aviso?.titulo ?? 'Aviso' },
   ];
 
@@ -48,7 +49,7 @@ export function MeuAvisoPage() {
               {loader.status === 'notfound' ? 'Aviso não encontrado ou não está mais disponível.' : loader.errorMessage}
             </Alert>
             <div className={formStyles.formActions}>
-              <Button to="/meus-avisos" icon={ArrowLeft}>
+              <Button to={urlDaLista('/meus-avisos')} icon={ArrowLeft}>
                 Voltar para meus avisos
               </Button>
             </div>
@@ -88,7 +89,7 @@ export function MeuAvisoPage() {
       </section>
 
       <div>
-        <Button variant="secondary" to="/meus-avisos" icon={ArrowLeft}>
+        <Button variant="secondary" to={urlDaLista('/meus-avisos')} icon={ArrowLeft}>
           Voltar para meus avisos
         </Button>
       </div>

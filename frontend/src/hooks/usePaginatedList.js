@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useLocation, useSearchParams } from 'react-router';
 import { getApiErrorMessage } from '../services/api';
+import { lembrarLista } from '../utils/listaMemoria';
 import { useDebouncedValue } from './useDebouncedValue';
 
 /**
@@ -13,6 +14,7 @@ export function usePaginatedList(fetchPage, { pageSize = 10, errorMessage = 'Nã
   // Filtros e página ficam na URL: recarregar a página ou compartilhar o link mantém a busca.
   const [searchParams, setSearchParams] = useSearchParams();
   const queryString = searchParams.toString();
+  const { pathname } = useLocation();
   const hasFilters = [...searchParams.keys()].some((key) => key !== 'page');
 
   const [buscaInput, setBuscaInput] = useState(() => searchParams.get('busca') ?? '');
@@ -36,6 +38,11 @@ export function usePaginatedList(fetchPage, { pageSize = 10, errorMessage = 'Nã
     },
     [setSearchParams],
   );
+
+  // Os formulários voltam para esta mesma URL (com os filtros) ao salvar/cancelar.
+  useEffect(() => {
+    lembrarLista(pathname, queryString ? `?${queryString}` : '');
+  }, [pathname, queryString]);
 
   // Aplica a busca só quando o usuário para de digitar.
   const lastAppliedBusca = useRef(debouncedBusca);

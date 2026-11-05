@@ -1,6 +1,6 @@
 import { Send, Type } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
@@ -17,6 +17,7 @@ import { toFieldErrors } from '../../utils/apiErrors';
 import { PUBLICO_OPTIONS, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import relationStyles from '../../styles/RelationSection.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const buscarAlunos = (busca, { signal }) =>
   listAlunos({ ativo: 'true', pageSize: 6, busca }, { signal }).then((data) => data.items);
@@ -35,13 +36,16 @@ export function AvisoFormPage() {
   const isProfessor = user.tipoUsuario === 'PROFESSOR';
   const navigate = useNavigate();
   const turmas = useTurmasDisponiveis(isProfessor);
+  // Vindo de "Minhas turmas" (?turmaId=...), o aviso já abre para aquela turma.
+  const [searchParams] = useSearchParams();
+  const turmaIdInicial = searchParams.get('turmaId') ?? '';
 
   // Professor só publica para turmas em que leciona (regra validada também no backend).
   const [form, setForm] = useState({
     titulo: '',
     conteudo: '',
-    publico: isProfessor ? 'TURMA' : 'TODOS',
-    turmaId: '',
+    publico: isProfessor || turmaIdInicial ? 'TURMA' : 'TODOS',
+    turmaId: turmaIdInicial,
     aluno: null,
   });
   const [errors, setErrors] = useState({});
@@ -91,7 +95,7 @@ export function AvisoFormPage() {
         description="Depois de publicado, o aviso não pode ser editado (pode ser arquivado)."
         breadcrumbs={[
           { label: 'Dashboard', to: '/dashboard' },
-          { label: 'Avisos', to: '/avisos' },
+          { label: 'Avisos', to: urlDaLista('/avisos') },
           { label: 'Novo aviso' },
         ]}
       />
@@ -193,7 +197,7 @@ export function AvisoFormPage() {
           </p>
 
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/avisos">
+            <Button variant="secondary" to={urlDaLista('/avisos')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Send} loading={saving} loadingText="Publicando...">

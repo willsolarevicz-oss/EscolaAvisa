@@ -34,6 +34,7 @@ export const NAVIGATION = [
       { label: 'Alunos', to: '/alunos', icon: GraduationCap, available: true, roles: ['ADMIN'] },
       { label: 'Responsáveis', icon: HeartHandshake, available: false, roles: ['ADMIN'] },
       { label: 'Turmas', to: '/turmas', icon: School, available: true, roles: ['ADMIN'] },
+      { label: 'Minhas turmas', to: '/minhas-turmas', icon: School, available: true, roles: ['PROFESSOR'] },
       { label: 'Disciplinas', to: '/disciplinas', icon: BookOpen, available: true, roles: ['ADMIN'] },
       { label: 'Notas', to: '/notas', icon: NotebookPen, available: true, roles: ['ADMIN', 'PROFESSOR'] },
       { label: 'Boletim', to: '/boletim', icon: NotebookPen, available: true, roles: ['RESPONSAVEL'] },

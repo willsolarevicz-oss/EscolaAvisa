@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Send, Type } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
@@ -17,6 +17,8 @@ import { listMeusAlunos } from '../../services/ocorrenciaService';
 import { toFieldErrors } from '../../utils/apiErrors';
 import styles from '../../styles/FormPage.module.css';
 import relationStyles from '../../styles/RelationSection.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
+import { alunoDaNavegacao } from '../../utils/navegacao';
 
 // Admin busca entre todos os alunos ativos; professor só entre os das turmas dele.
 const buscarAlunosAdmin = (busca, { signal }) =>
@@ -63,9 +65,18 @@ export function NovaConversaPage() {
   const isResponsavel = user.tipoUsuario === 'RESPONSAVEL';
   const isProfessor = user.tipoUsuario === 'PROFESSOR';
   const navigate = useNavigate();
+  const location = useLocation();
 
   // destino (responsável): 'SECRETARIA' ou o id de um professor.
-  const [form, setForm] = useState({ alunoId: '', aluno: null, destino: '', responsavelId: '', assunto: '', mensagem: '' });
+  // Escola vindo de "Minhas turmas": o aluno chega na navegação, já escolhido.
+  const [form, setForm] = useState(() => ({
+    alunoId: '',
+    aluno: isResponsavel ? null : alunoDaNavegacao(location.state),
+    destino: '',
+    responsavelId: '',
+    assunto: '',
+    mensagem: '',
+  }));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -132,7 +143,7 @@ export function NovaConversaPage() {
         }
         breadcrumbs={[
           { label: 'Dashboard', to: '/dashboard' },
-          { label: 'Mensagens', to: '/mensagens' },
+          { label: 'Mensagens', to: urlDaLista('/mensagens') },
           { label: 'Nova conversa' },
         ]}
       />
@@ -252,7 +263,7 @@ export function NovaConversaPage() {
           />
 
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/mensagens">
+            <Button variant="secondary" to={urlDaLista('/mensagens')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Send} loading={saving} loadingText="Enviando...">

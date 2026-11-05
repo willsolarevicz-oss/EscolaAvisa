@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // total_responsaveis: quantos responsáveis estão vinculados (ajuda a achar alunos sem responsável).
 const SELECT_ALUNO = `
@@ -22,7 +22,7 @@ export async function list({ page, pageSize, busca, ativo }) {
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`(a.nome ILIKE $${params.length} OR a.matricula ILIKE $${params.length})`);
+    conditions.push(buscaSemAcento(['a.nome', 'a.matricula'], `$${params.length}`));
   }
   if (ativo !== undefined) {
     params.push(ativo);

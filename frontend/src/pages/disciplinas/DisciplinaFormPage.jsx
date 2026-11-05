@@ -10,6 +10,7 @@ import { getApiErrorMessage } from '../../services/api';
 import { createDisciplina, getDisciplina, updateDisciplina } from '../../services/disciplinaService';
 import { toFieldErrors } from '../../utils/apiErrors';
 import styles from '../../styles/FormPage.module.css';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const EMPTY_FORM = { nome: '', descricao: '' };
 
@@ -33,7 +34,7 @@ export function DisciplinaFormPage() {
   const title = isEdit ? 'Editar disciplina' : 'Nova disciplina';
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Disciplinas', to: '/disciplinas' },
+    { label: 'Disciplinas', to: urlDaLista('/disciplinas') },
     { label: title },
   ];
 
@@ -57,7 +58,7 @@ export function DisciplinaFormPage() {
     setSubmitError('');
     try {
       const saved = isEdit ? await updateDisciplina(id, payload) : await createDisciplina(payload);
-      navigate('/disciplinas', {
+      navigate(urlDaLista('/disciplinas'), {
         state: {
           flash: {
             type: 'success',
@@ -82,7 +83,7 @@ export function DisciplinaFormPage() {
           <>
             <Alert type="error">{loadState === 'notfound' ? 'Disciplina não encontrada.' : loadError}</Alert>
             <div className={styles.formActions}>
-              <Button to="/disciplinas" icon={ArrowLeft}>
+              <Button to={urlDaLista('/disciplinas')} icon={ArrowLeft}>
                 Voltar para disciplinas
               </Button>
             </div>
@@ -130,7 +131,7 @@ export function DisciplinaFormPage() {
             />
           </div>
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/disciplinas">
+            <Button variant="secondary" to={urlDaLista('/disciplinas')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Save} loading={saving} loadingText="Salvando...">

@@ -1,6 +1,6 @@
 import { pool } from '../database/pool.js';
 import { responsaveisAutorizadosSql } from '../database/responsaveisAutorizados.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // Ocorrência + nomes (aluno, autor) + contagem de responsáveis e de ciências.
 const SELECT_OCORRENCIA = `
@@ -29,7 +29,7 @@ export async function list({ page, pageSize, busca, tipo, ativo, alunoId, autorI
 
   if (busca) {
     params.push(containsPattern(busca));
-    conditions.push(`al.nome ILIKE $${params.length}`);
+    conditions.push(buscaSemAcento(['al.nome'], `$${params.length}`));
   }
   if (tipo) {
     params.push(tipo);

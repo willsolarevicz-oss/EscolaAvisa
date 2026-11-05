@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { containsPattern } from '../database/sqlHelpers.js';
+import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 const SELECT_ATRIBUICAO = `
   SELECT pt.id, pt.turma_id, pt.criado_em,
@@ -47,7 +47,7 @@ export async function listAlunosDoProfessor(professorId, { busca, limit }) {
   let buscaSql = '';
   if (busca) {
     params.push(containsPattern(busca));
-    buscaSql = `AND (a.nome ILIKE $${params.length} OR a.matricula ILIKE $${params.length})`;
+    buscaSql = `AND ${buscaSemAcento(['a.nome', 'a.matricula'], `$${params.length}`)}`;
   }
   params.push(limit);
   const { rows } = await pool.query(
@@ -99,4 +99,25 @@ export async function remove(id, turmaId) {
     turmaId,
   ]);
   return rowCount === 1;
+}
+
+/**
+ * "Minhas turmas" do professor: alunos ATIVOS com matrícula ativa na turma e quantos
+ * responsáveis podem receber comunicações (0 = não adianta mandar mensagem/aviso).
+ */
+export async function listAlunosDaTurmaComContato(turmaId) {
+  const { rows } = await pool.query(
+    `SELECT a.id, a.nome, a.matricula,
+            (SELECT COUNT(*)::int
+             FROM aluno_responsavel ar
+             JOIN responsaveis r ON r.id = ar.responsavel_id
+             JOIN usuarios u ON u.id = r.usuario_id AND u.ativo
+             WHERE ar.aluno_id = a.id AND ar.autorizado_receber_comunicacoes) AS responsaveis_autorizados
+     FROM aluno_turma atm
+     JOIN alunos a ON a.id = atm.aluno_id AND a.ativo
+     WHERE atm.turma_id = $1 AND atm.ativo
+     ORDER BY a.nome ASC, a.id ASC`,
+    [turmaId],
+  );
+  return rows;
 }

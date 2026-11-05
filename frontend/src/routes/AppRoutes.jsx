@@ -22,6 +22,8 @@ import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage'
 import { OcorrenciaFormPage } from '../pages/ocorrencias/OcorrenciaFormPage';
 import { OcorrenciasListPage } from '../pages/ocorrencias/OcorrenciasListPage';
 import { RelatoriosPage } from '../pages/relatorios/RelatoriosPage';
+import { MinhaTurmaRoute } from '../pages/minhas-turmas/MinhaTurmaPage';
+import { MinhasTurmasPage } from '../pages/minhas-turmas/MinhasTurmasPage';
 import { MeusAvisosPage } from '../pages/meus-avisos/MeusAvisosPage';
 import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
 import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
@@ -79,6 +81,11 @@ export function AppRoutes() {
             <Route path="/calendario/eventos/novo" element={<EventoFormRoute />} />
             <Route path="/calendario/eventos/:id/editar" element={<EventoFormRoute />} />
             <Route path="/relatorios" element={<RelatoriosPage />} />
+          </Route>
+
+          <Route element={<RoleRoute allowedRoles={['PROFESSOR']} />}>
+            <Route path="/minhas-turmas" element={<MinhasTurmasPage />} />
+            <Route path="/minhas-turmas/:turmaId" element={<MinhaTurmaRoute />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>

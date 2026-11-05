@@ -5,11 +5,20 @@ export const TOKEN_STORAGE_KEY = 'escolaavis.token';
 // `expiresIn` do servidor, para não depender de o relógio do PC bater com o do servidor.
 const EXPIRES_AT_STORAGE_KEY = 'escolaavis.tokenExpiresAt';
 
+// Avisa no console UMA vez: get() roda a cada render/requisição e não deve inundar o log.
+let avisouStorageIndisponivel = false;
+function avisarStorageIndisponivel(acao, error) {
+  if (avisouStorageIndisponivel) return;
+  avisouStorageIndisponivel = true;
+  console.warn(`Armazenamento do navegador indisponível (${acao}); a sessão não fica salva.`, error);
+}
+
 function read(key) {
   try {
     return localStorage.getItem(key);
-  } catch {
+  } catch (error) {
     // Navegação privada / storage bloqueado: segue sem sessão persistida.
+    avisarStorageIndisponivel('leitura', error);
     return null;
   }
 }
@@ -37,8 +46,9 @@ export const tokenStorage = {
     try {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(EXPIRES_AT_STORAGE_KEY);
-    } catch {
-      // Nada a limpar se o storage estiver indisponível.
+    } catch (error) {
+      // Se o storage está indisponível, não há sessão salva para limpar; só registramos.
+      avisarStorageIndisponivel('limpeza', error);
     }
   },
 };

@@ -188,3 +188,24 @@ export async function removerAtribuicao(turmaId, atribuicaoId) {
   const removed = isUuid(atribuicaoId) && (await professorTurmaRepository.remove(atribuicaoId, turmaId));
   if (!removed) throw AppError.notFound('Atribuição não encontrada.');
 }
+
+// ---------- Professor ("Minhas turmas") ----------
+
+/** Alunos de uma turma em que o professor leciona (outra turma → 403, inexistente → 404). */
+export async function listAlunosDaTurmaDoProfessor(user, turmaId) {
+  const turma = isUuid(turmaId) ? await turmaRepository.findById(turmaId) : null;
+  if (!turma) throw AppError.notFound(TURMA_NOT_FOUND);
+  if (!(await professorTurmaRepository.professorLecionaNaTurma(user.id, turmaId))) {
+    throw AppError.forbidden('Você só pode ver os alunos das turmas em que leciona.');
+  }
+  const alunos = await professorTurmaRepository.listAlunosDaTurmaComContato(turmaId);
+  return {
+    turma: { id: turma.id, nome: turma.nome, anoLetivo: turma.ano_letivo, turno: turma.turno, ativo: turma.ativo },
+    alunos: alunos.map((a) => ({
+      id: a.id,
+      nome: a.nome,
+      matricula: a.matricula,
+      responsaveisAutorizados: a.responsaveis_autorizados,
+    })),
+  };
+}

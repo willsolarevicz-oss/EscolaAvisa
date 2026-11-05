@@ -1,4 +1,5 @@
 import path from 'node:path';
+import readline from 'node:readline/promises';
 import { pathToFileURL } from 'node:url';
 import { runner } from 'node-pg-migrate';
 import { env } from '../config/env.js';
@@ -23,12 +24,51 @@ export function runMigrations({ direction = 'up', count, databaseUrl = env.datab
   });
 }
 
+/** Nome do banco da URL (sem usuário/senha), para a mensagem de confirmação. */
+function nomeDoBanco(databaseUrl) {
+  try {
+    const url = new URL(databaseUrl);
+    return `${url.pathname.slice(1)} em ${url.hostname}`;
+  } catch {
+    // URL fora do formato esperado: a confirmação continua valendo, só sem o nome.
+    return 'configurado no .env';
+  }
+}
+
+/**
+ * Desfazer migration pode APAGAR tabelas e dados. Pede confirmação explícita:
+ * no terminal, digitando "sim"; em script/CI (sem terminal), só com --yes.
+ */
+async function confirmarDown(count) {
+  const quantas = count ?? 1;
+  const alvo = `${quantas} migration(s) no banco ${nomeDoBanco(env.databaseUrl)}`;
+  if (!process.stdin.isTTY) {
+    throw new Error(`Desfazer ${alvo} exige confirmação. Rode de novo com --yes.`);
+  }
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const resposta = await rl.question(
+      `[migrate] Isso vai DESFAZER ${alvo} (pode apagar tabelas e dados). Digite "sim" para continuar: `,
+    );
+    return resposta.trim().toLowerCase() === 'sim';
+  } finally {
+    rl.close();
+  }
+}
+
 async function main() {
-  const direction = process.argv[2] === 'down' ? 'down' : 'up';
-  const countArg = process.argv[3];
+  const args = process.argv.slice(2);
+  const yes = args.includes('--yes');
+  const [directionArg, countArg] = args.filter((arg) => arg !== '--yes');
+  const direction = directionArg === 'down' ? 'down' : 'up';
   const count = countArg ? Number(countArg) : undefined;
   if (countArg && (!Number.isInteger(count) || count <= 0)) {
     throw new Error('Quantidade de migrations inválida');
+  }
+
+  if (direction === 'down' && !yes && !(await confirmarDown(count))) {
+    console.log('[migrate] Cancelado. Nada foi desfeito.');
+    return;
   }
 
   const executed = await runMigrations({ direction, count });

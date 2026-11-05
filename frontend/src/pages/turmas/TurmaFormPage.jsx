@@ -16,6 +16,7 @@ import { TURNO_OPTIONS, turnoLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import { TurmaAlunosSection } from './TurmaAlunosSection';
 import { TurmaProfessoresSection } from './TurmaProfessoresSection';
+import { urlDaLista } from '../../utils/listaMemoria';
 
 const TURNO_SELECT_OPTIONS = [{ value: '', label: 'Selecione o turno' }, ...TURNO_OPTIONS];
 const emptyForm = () => ({ nome: '', anoLetivo: String(new Date().getFullYear()), turno: '', descricao: '' });
@@ -52,7 +53,7 @@ export function TurmaFormPage() {
   const title = isEdit ? 'Editar turma' : 'Nova turma';
   const breadcrumbs = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Turmas', to: '/turmas' },
+    { label: 'Turmas', to: urlDaLista('/turmas') },
     { label: isEdit && turma ? turma.nome : title },
   ];
 
@@ -82,7 +83,7 @@ export function TurmaFormPage() {
     try {
       if (isEdit) {
         const saved = await updateTurma(id, payload);
-        navigate('/turmas', { state: { flash: { type: 'success', message: `Turma ${saved.nome} atualizada.` } } });
+        navigate(urlDaLista('/turmas'), { state: { flash: { type: 'success', message: `Turma ${saved.nome} atualizada.` } } });
       } else {
         // Depois de cadastrar, vai para a edição: é lá que se matriculam alunos e se atribuem professores.
         const saved = await createTurma(payload);
@@ -107,7 +108,7 @@ export function TurmaFormPage() {
           <>
             <Alert type="error">{loadState === 'notfound' ? 'Turma não encontrada.' : loadError}</Alert>
             <div className={styles.formActions}>
-              <Button to="/turmas" icon={ArrowLeft}>
+              <Button to={urlDaLista('/turmas')} icon={ArrowLeft}>
                 Voltar para turmas
               </Button>
             </div>
@@ -198,7 +199,7 @@ export function TurmaFormPage() {
             />
           </div>
           <div className={styles.formActions}>
-            <Button variant="secondary" to="/turmas">
+            <Button variant="secondary" to={urlDaLista('/turmas')}>
               Cancelar
             </Button>
             <Button type="submit" icon={Save} loading={saving} loadingText="Salvando...">

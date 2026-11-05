@@ -58,3 +58,9 @@ export async function removerAtribuicao(req, res) {
   await turmaService.removerAtribuicao(req.params.id, req.params.atribuicaoId);
   res.status(200).json({ success: true, message: 'Atribuição removida com sucesso.' });
 }
+
+/** GET /api/me/turmas/:turmaId/alunos (professor) */
+export async function alunosDaMinhaTurma(req, res) {
+  const data = await turmaService.listAlunosDaTurmaDoProfessor(req.user, req.params.turmaId);
+  res.status(200).json({ success: true, data });
+}
