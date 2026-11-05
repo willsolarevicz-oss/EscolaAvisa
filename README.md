@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 8 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim** e **calendário escolar com feriados nacionais (BrasilAPI)**.
+> **Status:** Fases 1 a 9 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)** e **mensagens entre responsáveis e escola**.
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -210,6 +210,11 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/calendario?mes=AAAA-MM` | todos | Eventos visíveis ao usuário + feriados nacionais do mês (BrasilAPI) |
 | POST   | `/api/eventos`     | ADMIN, PROFESSOR | Cria evento (professor: só para turma em que leciona) |
 | GET/PUT/DELETE | `/api/eventos/:id` | ADMIN, PROFESSOR (autor) | Carrega / edita / exclui evento |
+| GET/POST | `/api/conversas` | todos | Lista as conversas do usuário (`naoLidas=true`) / inicia conversa com a 1ª mensagem |
+| GET    | `/api/conversas/contatos` | todos | Com quem o usuário pode iniciar conversa |
+| GET    | `/api/conversas/:id` | participante | Conversa com as mensagens                   |
+| POST   | `/api/conversas/:id/mensagens` | participante | Envia mensagem                       |
+| POST   | `/api/conversas/:id/lida` | participante | Marca a conversa como lida                |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

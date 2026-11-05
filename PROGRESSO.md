@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 8 (calendário escolar + feriados da BrasilAPI). Branch: `feat/fase-8-calendario`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–7 já na `main` via PR #1).
+> Última atualização: 2026-11-05 — fim da Fase 9 (mensagens entre responsáveis e escola). Branch: `feat/fase-9-mensagens`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–8 já na `main` via PRs #1 e #2; cada fase nova entra por PR).
 
 ---
 
@@ -55,7 +55,7 @@ escola-avisa/
         │                    useTurmasDisponiveis (turmas que o usuário pode escolher: avisos e eventos)
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
-        │                    notaService, eventoService
+        │                    notaService, eventoService, conversaService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
@@ -71,16 +71,19 @@ escola-avisa/
         │                    controle de leitura), meus-avisos/ (lista e leitura para o responsável),
         │                    ocorrencias/ (lista, registro, detalhe com ciência), minhas-ocorrencias/ (responsável),
         │                    notas/ (turmas e grade de lançamento), boletim/ (responsável),
-        │                    calendario/ (calendário mensal e formulário de evento)
+        │                    calendario/ (calendário mensal e formulário de evento),
+        │                    mensagens/ (lista de conversas, nova conversa, conversa em balões)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors),
         │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend),
-        │                    calendario (grade do mês, navegação entre meses, tipos de evento)
+        │                    calendario (grade do mês, navegação entre meses, tipos de evento),
+        │                    mensagens (outroLado: "Secretaria" / "Prof. Fulano" / nome do responsável)
         └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
                              (estilos compartilhados por todas as listagens e formulários),
                              RelationSection.module.css (seções de vínculos: responsáveis, alunos, professores),
                              Comunicado.module.css (telas de avisos e ocorrências: conteúdo, leitores, feed),
                              Notas.module.css (grade de lançamento e boletim),
-                             Calendario.module.css (grade mensal; no celular vira marcadores + lista)
+                             Calendario.module.css (grade mensal; no celular vira marcadores + lista),
+                             Mensagens.module.css (balões da conversa e campo de resposta)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
@@ -112,6 +115,8 @@ Todas as PKs são `UUID` (`gen_random_uuid()`), todas as tabelas de entidade tê
 | `ocorrencias`       | aluno_id, autor_id, tipo (DISCIPLINAR/ATRASO/SAUDE/ELOGIO/OUTRO), descricao, data_ocorrencia, ativo  | CHECK de tipo e data; FKs RESTRICT; não é editada depois de registrada |
 | `ocorrencia_ciencias` | ocorrencia_id, usuario_id, ciente_em                                                               | PK (ocorrencia_id, usuario_id); snapshot dos responsáveis no registro; CASCADE à ocorrência |
 | `eventos`           | titulo, descricao, tipo, data_inicio, data_fim, turma_id (NULL = escola toda), autor_id              | CHECK tipo (PROVA/REUNIAO/RECESSO/EVENTO/OUTRO) e data_fim >= data_inicio; FKs RESTRICT; excluído quando cancelado (sem leitura/ciência a preservar) |
+| `conversas`         | aluno_id, responsavel_usuario_id, canal (SECRETARIA/PROFESSOR), professor_usuario_id, assunto, iniciada_por, ultima_mensagem_em, lida_responsavel_em, lida_escola_em | CHECK canal; professor existe ⇔ canal PROFESSOR; FKs RESTRICT; leitura por LADO (não por pessoa) |
+| `mensagens`         | conversa_id, autor_id, conteudo (≤ 5000), enviada_em                                                   | Não são editadas nem apagadas; FK conversa CASCADE, autor RESTRICT |
 | `notas`             | aluno_id, turma_id, disciplina_id, bimestre (1–4), valor NUMERIC(3,1), lancado_por                    | CHECK valor 0–10 e bimestre 1–4; UNIQUE (aluno, turma, disciplina, bimestre); FKs RESTRICT; média não é gravada |
 | `pgmigrations`      | controle interno do node-pg-migrate                                                                  | — |
 
@@ -125,8 +130,9 @@ Relacionamentos:
 - `alunos × turmas × disciplinas × bimestre → notas` (no máximo uma nota por combinação)
 - `turmas 1 — N eventos` (opcional: sem turma = escola toda); `usuarios 1 — N eventos` (autor)
 - Feriados nacionais **não** ficam no banco: vêm da BrasilAPI na hora de montar o calendário
+- `alunos 1 — N conversas` (toda conversa é sobre um aluno); `conversas 1 — N mensagens`; responsável e professor são `usuarios`
 
-Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`, `1793059207000_criar-eventos`.
+Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`, `1793059207000_criar-eventos`, `1793059208000_criar-conversas`.
 
 ## Implementado
 
@@ -165,9 +171,10 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] **Boletim (responsável)**: notas e média por disciplina de cada aluno com vínculo autorizado e matrícula ativa
 - [x] **Calendário (Fase 8)**: grade mensal + lista "Neste mês", navegação entre meses (mês fica na URL), destaque de hoje; no celular a grade vira marcadores coloridos e os detalhes ficam na lista. ADMIN cria eventos da escola toda ou de qualquer turma; PROFESSOR só para turmas em que leciona e só edita/exclui os próprios; RESPONSAVEL vê escola toda + turmas dos seus alunos (vínculo autorizado). Exclusão com confirmação
 - [x] **Integração BrasilAPI (feriados nacionais)**: chamada pelo backend (`feriadoService`), timeout de 3 s, cache em memória por ano (24 h; falha fica 60 s em espera), resposta validada; se cair, o calendário mostra os eventos e um aviso "feriados indisponíveis". Configurável por `BRASILAPI_URL`/`BRASILAPI_TIMEOUT_MS`; os testes nunca acessam a internet (fetch simulado)
-- [x] **Testes automatizados: 163 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede)
+- [x] **Mensagens (Fase 9)**: conversas sempre sobre um aluno, em dois canais: SECRETARIA (qualquer ADMIN atende) e PROFESSOR (privada entre o responsável e aquele professor). Responsável inicia com a secretaria ou com professor que dá aula para o filho; professor inicia com responsável de aluno das turmas dele; ADMIN inicia pela secretaria com qualquer aluno ativo. Só responsáveis **autorizados**. Lista com "N novas" e filtro "Não lidas", conversa em balões (quebras de linha mantidas), "Lida" nas minhas mensagens, Ctrl+Enter envia, botão Atualizar (sem tempo real)
+- [x] **Testes automatizados: 175 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -233,6 +240,12 @@ O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas at
 | GET    | `/api/calendario?mes=AAAA-MM` | todos os perfis | `{ mes, eventos, feriados: [{ data, nome }], feriadosDisponiveis }`. Cada perfil vê só o que lhe diz respeito; `evento.podeEditar` vem calculado |
 | POST   | `/api/eventos` | ADMIN, PROFESSOR | `{ titulo, tipo, dataInicio, dataFim?, turmaId?, descricao? }`. Professor: `turmaId` obrigatório e de turma em que leciona (403) |
 | GET/PUT/DELETE | `/api/eventos/:id` | ADMIN, PROFESSOR (autor) | Carrega / edita / exclui. Evento de outro autor → 404 para o professor |
+| GET    | `/api/conversas` | todos | `{ items, pagination }` (`naoLidas=true` filtra). Cada perfil vê só as suas (ADMIN: canal SECRETARIA) |
+| POST   | `/api/conversas` | todos | `{ alunoId, assunto, mensagem }` + RESPONSAVEL: `canal`, `professorId?`; escola: `responsavelId`. Cria com a 1ª mensagem (transação) |
+| GET    | `/api/conversas/contatos` | todos | Responsável: `{ alunos: [{ id, nome, professores }] }`; escola (`?alunoId=`): `{ responsaveis }` |
+| GET    | `/api/conversas/:id` | participante | Conversa + `mensagens` (`minha`, `lado`) + `lidaPeloOutroLadoEm`. De outra pessoa → 404 |
+| POST   | `/api/conversas/:id/mensagens` | participante | `{ conteudo }` → conversa atualizada (sobe na lista) |
+| POST   | `/api/conversas/:id/lida` | participante | Marca como lida até a última mensagem (do lado de quem chama) |
 
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
@@ -250,7 +263,6 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 ## Pendências
 
 Módulos (cada um precisa de backend + frontend + testes):
-- [ ] Mensagens (nova migration)
 - [ ] Integração BrasilAPI: CEP no cadastro (feriados já feitos na Fase 8)
 - [ ] Relatórios
 - [ ] Indicadores reais nos cards do dashboard (trocar "—" quando os endpoints existirem)
@@ -271,6 +283,7 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Anexos em avisos.
 - [ ] Grade de notas: sair da página pelo menu com alterações não salvas não pede confirmação (só fechar/recarregar a aba). Resolver migrando para o "data router" do React Router (`useBlocker`).
 - [ ] Situação do aluno (aprovado/recuperação) e média mínima configurável — fora do escopo por decisão do usuário (2026-11-05).
+- [ ] Mensagens: sem tempo real (atualiza ao abrir/enviar/botão) e sem contador de não lidas na sidebar; a conversa carrega todas as mensagens de uma vez (paginar se ficarem longas); sem anexos; professor que deixou a turma continua nas conversas antigas.
 - [ ] Calendário: feriados estaduais/municipais não vêm da BrasilAPI (só nacionais); cadastrar como evento "Recesso". Card "próximos eventos" no dashboard ainda não existe.
 - [ ] A página de acesso restrito diz "exclusiva da administração" mesmo em rotas de ADMIN+PROFESSOR (texto genérico do `ForbiddenPage`).
 - [ ] Virada de ano letivo (encerrar matrículas do ano anterior em lote) não existe; hoje é turma a turma.
@@ -278,20 +291,12 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 ## Próxima etapa
 
-**Fase 9 — Mensagens** (conversa entre responsável e escola/professor). Último módulo de comunicação do escopo original.
+Os módulos de comunicação do escopo original estão completos (avisos, ocorrências, notas, calendário, mensagens). Candidatos para a **Fase 10** (decidir com o usuário):
 
-Antes, confirmar com o usuário: quem o responsável pode contatar (secretaria/ADMIN, professores das turmas do filho, ou ambos), se a conversa é sempre sobre um aluno, e se o professor pode iniciar conversa.
-
-Banco (nova migration):
-1. `conversas`: aluno_id, responsavel_id (usuário), participante da escola (usuário ADMIN/PROFESSOR), assunto, criado_em, atualizado_em (ordenação "mais recente primeiro").
-2. `mensagens`: conversa_id, autor_id, conteudo, enviada_em, lida_em (leitura pelo outro lado).
-
-Backend:
-1. Listar conversas do usuário com contagem de não lidas; abrir conversa (marca como lidas); enviar mensagem; iniciar conversa respeitando as regras de quem fala com quem.
-2. Mesma regra de vínculo das comunicações (responsável autorizado + aluno ativo).
-
-Frontend:
-1. Lista de conversas + tela da conversa (estilo chat simples, sem tempo real: atualiza ao abrir/enviar); liberar "Mensagens" na sidebar.
+1. **Dashboard com indicadores reais** para os módulos novos (mensagens não lidas, próximos eventos) + contador de não lidas na sidebar.
+2. **Relatórios** (ex.: leitura de avisos por turma, ocorrências por período, médias por turma/disciplina).
+3. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor).
+4. **CI no GitHub** (Actions rodando testes, lint e build em cada PR).
 
 ## Decisões técnicas
 
@@ -369,3 +374,8 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 70. **Testes não acessam a internet**: `tests/setup.js` aponta `BRASILAPI_URL` para uma porta fechada e os testes do calendário simulam o `fetch` (`mock.method`).
 71. **Responsável vê eventos de turma pela mesma regra das comunicações** (vínculo autorizado + aluno ativo + matrícula ativa na turma).
 72. **Datas do calendário como texto AAAA-MM-DD/AAAA-MM** no front e no back (contas em UTC só para dia da semana/qtde. de dias), como já era em `data_nascimento`: evita o dia "voltar um" por fuso.
+73. **Mensagens definidas pelo usuário (2026-11-05)**: responsável fala com a secretaria e com professores dos filhos; os dois lados podem iniciar.
+74. **Toda conversa é sobre um aluno**: é o aluno que define quem pode falar com quem (vínculo autorizado; professor que dá aula para o aluno).
+75. **Dois canais**: SECRETARIA (qualquer ADMIN vê e responde, como uma caixa compartilhada) e PROFESSOR (privada: o ADMIN **não** vê). Conversas de professor ficam fora do alcance do admin por privacidade; revisável se a escola exigir supervisão.
+76. **Leitura por lado, não por pessoa** (`lida_responsavel_em` / `lida_escola_em`): na secretaria, qualquer admin que leia zera as não lidas. Marca até a MAIOR `enviada_em` existente (não `NOW()`), para não perder mensagem que chegue junto.
+77. **Sem tempo real** (WebSocket/polling) nesta fase: atualiza ao abrir, enviar ou no botão "Atualizar". Mensagens não são editadas nem apagadas.

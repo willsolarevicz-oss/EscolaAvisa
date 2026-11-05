@@ -41,7 +41,7 @@ export const NAVIGATION = [
       { label: 'Meus avisos', to: '/meus-avisos', icon: Bell, available: true, roles: ['RESPONSAVEL'] },
       { label: 'Ocorrências', to: '/ocorrencias', icon: ClipboardList, available: true, roles: ['ADMIN', 'PROFESSOR'] },
       { label: 'Minhas ocorrências', to: '/minhas-ocorrencias', icon: ClipboardList, available: true, roles: ['RESPONSAVEL'] },
-      { label: 'Mensagens', icon: MessageSquare, available: false },
+      { label: 'Mensagens', to: '/mensagens', icon: MessageSquare, available: true },
       { label: 'Calendário', to: '/calendario', icon: CalendarDays, available: true },
     ],
   },

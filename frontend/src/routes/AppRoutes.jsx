@@ -13,6 +13,9 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { MinhaOcorrenciaPage } from '../pages/minhas-ocorrencias/MinhaOcorrenciaPage';
 import { MinhasOcorrenciasPage } from '../pages/minhas-ocorrencias/MinhasOcorrenciasPage';
 import { MeuAvisoPage } from '../pages/meus-avisos/MeuAvisoPage';
+import { ConversaRoute } from '../pages/mensagens/ConversaPage';
+import { MensagensPage } from '../pages/mensagens/MensagensPage';
+import { NovaConversaPage } from '../pages/mensagens/NovaConversaPage';
 import { GradeNotasPage } from '../pages/notas/GradeNotasPage';
 import { NotasTurmasPage } from '../pages/notas/NotasTurmasPage';
 import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage';
@@ -44,6 +47,9 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/calendario" element={<CalendarioPage />} />
+          <Route path="/mensagens" element={<MensagensPage />} />
+          <Route path="/mensagens/nova" element={<NovaConversaPage />} />
+          <Route path="/mensagens/:id" element={<ConversaRoute />} />
 
           <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
             <Route path="/usuarios" element={<UsuariosListPage />} />
