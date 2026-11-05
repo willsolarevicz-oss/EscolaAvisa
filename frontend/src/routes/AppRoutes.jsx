@@ -6,10 +6,13 @@ import { AlunosListPage } from '../pages/alunos/AlunosListPage';
 import { AvisoDetailPage } from '../pages/avisos/AvisoDetailPage';
 import { AvisoFormPage } from '../pages/avisos/AvisoFormPage';
 import { AvisosListPage } from '../pages/avisos/AvisosListPage';
+import { BoletimPage } from '../pages/boletim/BoletimPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { MinhaOcorrenciaPage } from '../pages/minhas-ocorrencias/MinhaOcorrenciaPage';
 import { MinhasOcorrenciasPage } from '../pages/minhas-ocorrencias/MinhasOcorrenciasPage';
 import { MeuAvisoPage } from '../pages/meus-avisos/MeuAvisoPage';
+import { GradeNotasPage } from '../pages/notas/GradeNotasPage';
+import { NotasTurmasPage } from '../pages/notas/NotasTurmasPage';
 import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage';
 import { OcorrenciaFormPage } from '../pages/ocorrencias/OcorrenciaFormPage';
 import { OcorrenciasListPage } from '../pages/ocorrencias/OcorrenciasListPage';
@@ -61,6 +64,8 @@ export function AppRoutes() {
             <Route path="/ocorrencias" element={<OcorrenciasListPage />} />
             <Route path="/ocorrencias/nova" element={<OcorrenciaFormPage />} />
             <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
+            <Route path="/notas" element={<NotasTurmasPage />} />
+            <Route path="/notas/turmas/:turmaId/disciplinas/:disciplinaId" element={<GradeNotasPage />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>
@@ -68,6 +73,7 @@ export function AppRoutes() {
             <Route path="/meus-avisos/:id" element={<MeuAvisoPage />} />
             <Route path="/minhas-ocorrencias" element={<MinhasOcorrenciasPage />} />
             <Route path="/minhas-ocorrencias/:id" element={<MinhaOcorrenciaPage />} />
+            <Route path="/boletim" element={<BoletimPage />} />
           </Route>
         </Route>
       </Route>

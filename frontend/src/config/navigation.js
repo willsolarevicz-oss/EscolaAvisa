@@ -30,7 +30,8 @@ export const NAVIGATION = [
       { label: 'Responsáveis', icon: HeartHandshake, available: false, roles: ['ADMIN'] },
       { label: 'Turmas', to: '/turmas', icon: School, available: true, roles: ['ADMIN'] },
       { label: 'Disciplinas', to: '/disciplinas', icon: BookOpen, available: true, roles: ['ADMIN'] },
-      { label: 'Notas', icon: NotebookPen, available: false },
+      { label: 'Notas', to: '/notas', icon: NotebookPen, available: true, roles: ['ADMIN', 'PROFESSOR'] },
+      { label: 'Boletim', to: '/boletim', icon: NotebookPen, available: true, roles: ['RESPONSAVEL'] },
     ],
   },
   {

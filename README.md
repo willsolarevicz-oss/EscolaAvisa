@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 6 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura** e **ocorrências com ciência do responsável**.
+> **Status:** Fases 1 a 7 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável** e **notas com boletim**.
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -202,6 +202,9 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/me/ocorrencias/:id` | RESPONSAVEL | Uma ocorrência                              |
 | POST   | `/api/me/ocorrencias/:id/ciencia` | RESPONSAVEL | "Estou ciente"                      |
 | GET    | `/api/me/alunos`   | PROFESSOR     | Alunos das turmas do professor (`busca`)          |
+| GET    | `/api/notas/turmas` | ADMIN, PROFESSOR | Turmas com as disciplinas lecionadas (professor: só as dele) |
+| GET/PUT | `/api/notas/turmas/:turmaId/disciplinas/:disciplinaId` | ADMIN, PROFESSOR (atribuído) | Grade de notas / lança em lote (`{ notas: [{ alunoId, bimestre, valor \| null }] }`, null apaga) |
+| GET    | `/api/me/boletim`  | RESPONSAVEL   | Notas e média por disciplina dos seus alunos      |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.
