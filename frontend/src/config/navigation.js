@@ -42,7 +42,7 @@ export const NAVIGATION = [
       { label: 'Ocorrências', to: '/ocorrencias', icon: ClipboardList, available: true, roles: ['ADMIN', 'PROFESSOR'] },
       { label: 'Minhas ocorrências', to: '/minhas-ocorrencias', icon: ClipboardList, available: true, roles: ['RESPONSAVEL'] },
       { label: 'Mensagens', icon: MessageSquare, available: false },
-      { label: 'Calendário', icon: CalendarDays, available: false },
+      { label: 'Calendário', to: '/calendario', icon: CalendarDays, available: true },
     ],
   },
   {

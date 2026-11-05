@@ -1,0 +1,272 @@
+/* Calendário mensal: grade (visão geral) + lista do mês (detalhes, principal no celular). */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.monthTitle {
+  min-width: 190px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* "novembro de 2026" → "Novembro de 2026" */
+.monthTitle::first-letter {
+  text-transform: uppercase;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th {
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table td {
+  height: 104px;
+  padding: 6px;
+  border: 1px solid var(--color-surface-muted);
+  vertical-align: top;
+}
+
+.table tr td:first-child {
+  border-left: 0;
+}
+
+.table tr td:last-child {
+  border-right: 0;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.outside {
+  background: var(--color-bg);
+}
+
+.dayNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.today .dayNumber {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.chips {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.chip {
+  overflow: hidden;
+  padding: 1px 6px;
+  border-left: 3px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+/* Cores por tipo (mesmos tons do Badge). */
+.tone_danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.tone_primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.tone_success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.tone_warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.tone_neutral {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.holiday {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+/* Lista do mês */
+.list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-surface-muted);
+}
+
+.item:first-child {
+  border-top: 0;
+}
+
+.date {
+  flex: 0 0 96px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.itemBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.itemMeta {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.itemDescription {
+  font-size: 0.9rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.itemActions {
+  flex: 0 0 auto;
+}
+
+.listTitle {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.emptyList {
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-text-muted);
+}
+
+/* Celular: a grade vira só números com marcadores; os detalhes ficam na lista. */
+@media (max-width: 640px) {
+  .toolbar {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .monthTitle {
+    min-width: 0;
+    flex: 1;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .monthNav {
+    flex: 1;
+  }
+
+  .table td {
+    height: 48px;
+    padding: 4px 2px;
+    text-align: center;
+  }
+
+  .table th {
+    padding: var(--space-2) 0;
+    font-size: 0.68rem;
+  }
+
+  .chips {
+    flex-direction: row;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .chip {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: currentColor;
+    font-size: 0;
+  }
+
+  .more {
+    display: none;
+  }
+
+  .item {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .date {
+    flex-basis: 100%;
+  }
+
+  .itemActions {
+    flex-basis: 100%;
+  }
+}

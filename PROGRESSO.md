@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 7 (notas e boletim). Branch: `feat/fase-7-notas`.
+> Última atualização: 2026-11-05 — fim da Fase 8 (calendário escolar + feriados da BrasilAPI). Branch: `feat/fase-8-calendario`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–7 já na `main` via PR #1).
 
 ---
 
@@ -51,10 +51,11 @@ escola-avisa/
         ├── hooks/           useAuth, useApiHealth, useDebouncedValue, usePaginatedList (listagem com
         │                    filtros na URL), useFlashMessage (mensagem entre páginas), useAtivoToggle
         │                    (confirmar + ativar/desativar em listagens), useEntityLoader (carregar registro
-        │                    por id: loading/notfound/error/reload — usado em todos os formulários e detalhes)
+        │                    por id: loading/notfound/error/reload — usado em todos os formulários e detalhes),
+        │                    useTurmasDisponiveis (turmas que o usuário pode escolher: avisos e eventos)
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
-        │                    notaService
+        │                    notaService, eventoService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
@@ -69,14 +70,17 @@ escola-avisa/
         │                    TurmaAlunosSection, TurmaProfessoresSection), avisos/ (lista, novo, detalhe com
         │                    controle de leitura), meus-avisos/ (lista e leitura para o responsável),
         │                    ocorrencias/ (lista, registro, detalhe com ciência), minhas-ocorrencias/ (responsável),
-        │                    notas/ (turmas e grade de lançamento), boletim/ (responsável)
+        │                    notas/ (turmas e grade de lançamento), boletim/ (responsável),
+        │                    calendario/ (calendário mensal e formulário de evento)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors),
-        │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend)
+        │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend),
+        │                    calendario (grade do mês, navegação entre meses, tipos de evento)
         └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
                              (estilos compartilhados por todas as listagens e formulários),
                              RelationSection.module.css (seções de vínculos: responsáveis, alunos, professores),
                              Comunicado.module.css (telas de avisos e ocorrências: conteúdo, leitores, feed),
-                             Notas.module.css (grade de lançamento e boletim)
+                             Notas.module.css (grade de lançamento e boletim),
+                             Calendario.module.css (grade mensal; no celular vira marcadores + lista)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
@@ -107,6 +111,7 @@ Todas as PKs são `UUID` (`gen_random_uuid()`), todas as tabelas de entidade tê
 | `aviso_destinatarios` | aviso_id, usuario_id, visualizado_em                                                               | PK (aviso_id, usuario_id); snapshot dos destinatários gravado na publicação; CASCADE ao aviso |
 | `ocorrencias`       | aluno_id, autor_id, tipo (DISCIPLINAR/ATRASO/SAUDE/ELOGIO/OUTRO), descricao, data_ocorrencia, ativo  | CHECK de tipo e data; FKs RESTRICT; não é editada depois de registrada |
 | `ocorrencia_ciencias` | ocorrencia_id, usuario_id, ciente_em                                                               | PK (ocorrencia_id, usuario_id); snapshot dos responsáveis no registro; CASCADE à ocorrência |
+| `eventos`           | titulo, descricao, tipo, data_inicio, data_fim, turma_id (NULL = escola toda), autor_id              | CHECK tipo (PROVA/REUNIAO/RECESSO/EVENTO/OUTRO) e data_fim >= data_inicio; FKs RESTRICT; excluído quando cancelado (sem leitura/ciência a preservar) |
 | `notas`             | aluno_id, turma_id, disciplina_id, bimestre (1–4), valor NUMERIC(3,1), lancado_por                    | CHECK valor 0–10 e bimestre 1–4; UNIQUE (aluno, turma, disciplina, bimestre); FKs RESTRICT; média não é gravada |
 | `pgmigrations`      | controle interno do node-pg-migrate                                                                  | — |
 
@@ -118,8 +123,10 @@ Relacionamentos:
 - `avisos N — N usuarios(RESPONSAVEL)` (via `aviso_destinatarios`, com a data de leitura)
 - `alunos 1 — N ocorrencias`; `ocorrencias N — N usuarios(RESPONSAVEL)` (via `ocorrencia_ciencias`)
 - `alunos × turmas × disciplinas × bimestre → notas` (no máximo uma nota por combinação)
+- `turmas 1 — N eventos` (opcional: sem turma = escola toda); `usuarios 1 — N eventos` (autor)
+- Feriados nacionais **não** ficam no banco: vêm da BrasilAPI na hora de montar o calendário
 
-Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`.
+Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`, `1793059207000_criar-eventos`.
 
 ## Implementado
 
@@ -156,9 +163,11 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] Tela do aluno: seção Ocorrências (últimas 5) com atalho "Registrar ocorrência" que já seleciona o aluno; card Ocorrências real por perfil no dashboard
 - [x] **Notas (Fase 7)**: 4 bimestres, escala 0–10 com uma casa decimal, média simples dos bimestres lançados (sem situação). Professor lança só nas turma+disciplina atribuídas a ele; ADMIN corrige qualquer uma. Grade editável (alunos × B1–B4 + média ao vivo), aceita vírgula ou ponto, destaca células alteradas/inválidas, salva em lote numa transação, célula vazia remove a nota, aviso ao fechar a aba com alterações
 - [x] **Boletim (responsável)**: notas e média por disciplina de cada aluno com vínculo autorizado e matrícula ativa
-- [x] **Testes automatizados: 150 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes)
+- [x] **Calendário (Fase 8)**: grade mensal + lista "Neste mês", navegação entre meses (mês fica na URL), destaque de hoje; no celular a grade vira marcadores coloridos e os detalhes ficam na lista. ADMIN cria eventos da escola toda ou de qualquer turma; PROFESSOR só para turmas em que leciona e só edita/exclui os próprios; RESPONSAVEL vê escola toda + turmas dos seus alunos (vínculo autorizado). Exclusão com confirmação
+- [x] **Integração BrasilAPI (feriados nacionais)**: chamada pelo backend (`feriadoService`), timeout de 3 s, cache em memória por ano (24 h; falha fica 60 s em espera), resposta validada; se cair, o calendário mostra os eventos e um aviso "feriados indisponíveis". Configurável por `BRASILAPI_URL`/`BRASILAPI_TIMEOUT_MS`; os testes nunca acessam a internet (fetch simulado)
+- [x] **Testes automatizados: 163 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -221,6 +230,9 @@ O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas at
 | GET    | `/api/notas/turmas/:turmaId/disciplinas/:disciplinaId` | ADMIN, PROFESSOR (atribuído) | `{ grade: { turma, disciplina, alunos: [{ aluno, notas: {1..4}, media }] } }`. 404 se a disciplina não é lecionada na turma |
 | PUT    | `/api/notas/turmas/:turmaId/disciplinas/:disciplinaId` | ADMIN, PROFESSOR (atribuído) | `{ notas: [{ alunoId, bimestre, valor \| null }] }` (null apaga). Transação: aluno fora da turma → 400 e nada é gravado |
 | GET    | `/api/me/boletim` | RESPONSAVEL | `{ boletins: [{ aluno, turma, disciplinas: [{ disciplina, notas, media }] }] }` (só vínculos autorizados) |
+| GET    | `/api/calendario?mes=AAAA-MM` | todos os perfis | `{ mes, eventos, feriados: [{ data, nome }], feriadosDisponiveis }`. Cada perfil vê só o que lhe diz respeito; `evento.podeEditar` vem calculado |
+| POST   | `/api/eventos` | ADMIN, PROFESSOR | `{ titulo, tipo, dataInicio, dataFim?, turmaId?, descricao? }`. Professor: `turmaId` obrigatório e de turma em que leciona (403) |
+| GET/PUT/DELETE | `/api/eventos/:id` | ADMIN, PROFESSOR (autor) | Carrega / edita / exclui. Evento de outro autor → 404 para o professor |
 
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
@@ -239,8 +251,7 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 
 Módulos (cada um precisa de backend + frontend + testes):
 - [ ] Mensagens (nova migration)
-- [ ] Calendário escolar (nova migration)
-- [ ] Integração BrasilAPI (ex.: CEP no cadastro, feriados no calendário)
+- [ ] Integração BrasilAPI: CEP no cadastro (feriados já feitos na Fase 8)
 - [ ] Relatórios
 - [ ] Indicadores reais nos cards do dashboard (trocar "—" quando os endpoints existirem)
 
@@ -260,27 +271,27 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Anexos em avisos.
 - [ ] Grade de notas: sair da página pelo menu com alterações não salvas não pede confirmação (só fechar/recarregar a aba). Resolver migrando para o "data router" do React Router (`useBlocker`).
 - [ ] Situação do aluno (aprovado/recuperação) e média mínima configurável — fora do escopo por decisão do usuário (2026-11-05).
+- [ ] Calendário: feriados estaduais/municipais não vêm da BrasilAPI (só nacionais); cadastrar como evento "Recesso". Card "próximos eventos" no dashboard ainda não existe.
+- [ ] A página de acesso restrito diz "exclusiva da administração" mesmo em rotas de ADMIN+PROFESSOR (texto genérico do `ForbiddenPage`).
 - [ ] Virada de ano letivo (encerrar matrículas do ano anterior em lote) não existe; hoje é turma a turma.
 - [ ] Não existe exclusão definitiva de usuários (de propósito: desativar preserva o histórico).
 
 ## Próxima etapa
 
-**Fase 8 — Calendário escolar + integração BrasilAPI (feriados).** Dois itens do escopo original que se completam: a escola cadastra eventos (provas, reuniões, recessos) e o calendário mostra também os feriados nacionais vindos da BrasilAPI.
+**Fase 9 — Mensagens** (conversa entre responsável e escola/professor). Último módulo de comunicação do escopo original.
 
-Antes, confirmar com o usuário: quem cria eventos (só ADMIN ou também PROFESSOR para suas turmas?) e se evento pode ser para uma turma específica.
+Antes, confirmar com o usuário: quem o responsável pode contatar (secretaria/ADMIN, professores das turmas do filho, ou ambos), se a conversa é sempre sobre um aluno, e se o professor pode iniciar conversa.
 
 Banco (nova migration):
-1. `eventos`: titulo, descricao, data_inicio, data_fim (DATE), tipo (PROVA/REUNIAO/FERIADO_ESCOLAR/EVENTO/OUTRO), turma_id (nullable = escola toda), autor_id, ativo.
+1. `conversas`: aluno_id, responsavel_id (usuário), participante da escola (usuário ADMIN/PROFESSOR), assunto, criado_em, atualizado_em (ordenação "mais recente primeiro").
+2. `mensagens`: conversa_id, autor_id, conteudo, enviada_em, lida_em (leitura pelo outro lado).
 
 Backend:
-1. CRUD de eventos (ADMIN; PROFESSOR se confirmado) e `GET /api/calendario?mes=AAAA-MM` que junta eventos da escola + feriados.
-2. **BrasilAPI**: `GET https://brasilapi.com.br/api/feriados/v1/{ano}` chamada **pelo backend** (nunca pelo navegador), com timeout curto, cache em memória por ano e tratamento de falha (o calendário funciona sem os feriados e informa a indisponibilidade). Isolar em `services/brasilApiService.js`.
-3. Responsável vê eventos da escola e das turmas dos seus alunos.
+1. Listar conversas do usuário com contagem de não lidas; abrir conversa (marca como lidas); enviar mensagem; iniciar conversa respeitando as regras de quem fala com quem.
+2. Mesma regra de vínculo das comunicações (responsável autorizado + aluno ativo).
 
 Frontend:
-1. Calendário mensal (grade de dias) + lista "próximos eventos"; liberar "Calendário" na sidebar para todos os perfis.
-
-Depois: **Fase 9 — Mensagens** (conversa entre responsável e escola/professor).
+1. Lista de conversas + tela da conversa (estilo chat simples, sem tempo real: atualiza ao abrir/enviar); liberar "Mensagens" na sidebar.
 
 ## Decisões técnicas
 
@@ -352,3 +363,9 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 64. **Grade só existe para disciplina lecionada na turma** (`professor_turma`). Professor lança apenas nas combinações atribuídas a ele; ADMIN corrige qualquer uma.
 65. **Lançamento em lote em transação**: o PUT recebe só as células alteradas; `valor: null` apaga a nota; qualquer aluno sem matrícula ativa invalida o lote inteiro.
 66. **Boletim segue a regra de comunicações**: só responsável **autorizado** vê (opção mais segura; revisável).
+67. **Calendário definido pelo usuário (2026-11-05)**: ADMIN e PROFESSOR criam eventos; professor só para turmas em que leciona e só mexe nos próprios. Evento sem turma = escola toda (só ADMIN).
+68. **Evento é editado/excluído, não arquivado**: diferente de avisos/ocorrências, não há leitura/ciência a preservar. Admin editando evento de professor mantém a autoria.
+69. **Feriados da BrasilAPI não são gravados no banco**: consultados pelo backend (nunca pelo navegador), com timeout, cache em memória por ano e resposta validada. Falha da API externa nunca derruba o calendário (`feriadosDisponiveis: false`). Escolha do usuário (2026-11-05).
+70. **Testes não acessam a internet**: `tests/setup.js` aponta `BRASILAPI_URL` para uma porta fechada e os testes do calendário simulam o `fetch` (`mock.method`).
+71. **Responsável vê eventos de turma pela mesma regra das comunicações** (vínculo autorizado + aluno ativo + matrícula ativa na turma).
+72. **Datas do calendário como texto AAAA-MM-DD/AAAA-MM** no front e no back (contas em UTC só para dia da semana/qtde. de dias), como já era em `data_nascimento`: evita o dia "voltar um" por fuso.

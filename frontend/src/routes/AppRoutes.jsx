@@ -7,6 +7,8 @@ import { AvisoDetailPage } from '../pages/avisos/AvisoDetailPage';
 import { AvisoFormPage } from '../pages/avisos/AvisoFormPage';
 import { AvisosListPage } from '../pages/avisos/AvisosListPage';
 import { BoletimPage } from '../pages/boletim/BoletimPage';
+import { CalendarioPage } from '../pages/calendario/CalendarioPage';
+import { EventoFormRoute } from '../pages/calendario/EventoFormPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { MinhaOcorrenciaPage } from '../pages/minhas-ocorrencias/MinhaOcorrenciaPage';
 import { MinhasOcorrenciasPage } from '../pages/minhas-ocorrencias/MinhasOcorrenciasPage';
@@ -41,6 +43,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/calendario" element={<CalendarioPage />} />
 
           <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
             <Route path="/usuarios" element={<UsuariosListPage />} />
@@ -66,6 +69,8 @@ export function AppRoutes() {
             <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
             <Route path="/notas" element={<NotasTurmasPage />} />
             <Route path="/notas/turmas/:turmaId/disciplinas/:disciplinaId" element={<GradeNotasPage />} />
+            <Route path="/calendario/eventos/novo" element={<EventoFormRoute />} />
+            <Route path="/calendario/eventos/:id/editar" element={<EventoFormRoute />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>
