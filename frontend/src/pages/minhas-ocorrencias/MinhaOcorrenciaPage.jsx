@@ -7,6 +7,7 @@ import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
 import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { getApiErrorMessage } from '../../services/api';
+import { notificarMudancaContadores } from '../../services/contadorService';
 import { getMinhaOcorrencia, registrarCiencia } from '../../services/ocorrenciaService';
 import { formatDateOnly, formatDateTime, tipoOcorrencia } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
@@ -34,6 +35,7 @@ export function MinhaOcorrenciaPage() {
     try {
       const { cienteEm } = await registrarCiencia(id);
       loader.setData((prev) => ({ ...prev, ciente: true, cienteEm }));
+      notificarMudancaContadores();
       setFeedback({ type: 'success', message: 'Ciência registrada. A escola foi informada.' });
     } catch (error) {
       setFeedback({ type: 'error', message: getApiErrorMessage(error, 'Não foi possível registrar a ciência.') });

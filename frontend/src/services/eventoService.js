@@ -26,3 +26,9 @@ export async function deleteEvento(id) {
   const { data } = await api.delete(`/eventos/${id}`);
   return data.message;
 }
+
+/** Dashboard: { eventos (próximos, ainda não terminados), proximoFeriado, feriadosDisponiveis } */
+export async function getProximosEventos(limite = 5, { signal } = {}) {
+  const { data } = await api.get('/calendario/proximos', { params: { limite }, signal });
+  return data.data;
+}

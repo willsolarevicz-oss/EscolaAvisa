@@ -143,3 +143,19 @@
     justify-content: center;
   }
 }
+
+/* Há algo novo no menu (contadores da sidebar): visível no celular, onde a sidebar fica escondida. */
+.menuButton {
+  position: relative;
+}
+
+.menuDot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}

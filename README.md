@@ -2,7 +2,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 9 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)** e **mensagens entre responsáveis e escola**.
+> **Status:** Fases 1 a 10 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** e **dashboard com indicadores reais e contadores na sidebar**.
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -215,6 +215,8 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/conversas/:id` | participante | Conversa com as mensagens                   |
 | POST   | `/api/conversas/:id/mensagens` | participante | Envia mensagem                       |
 | POST   | `/api/conversas/:id/lida` | participante | Marca a conversa como lida                |
+| GET    | `/api/me/contadores` | todos | Números da sidebar (mensagens novas; avisos/ocorrências pendentes do responsável) |
+| GET    | `/api/calendario/proximos` | todos | Próximos eventos (`limite`, padrão 5) + próximo feriado nacional |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.

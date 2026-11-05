@@ -53,3 +53,12 @@ export const calendarioQuerySchema = z.object({
     .regex(/^(\d{4})-(0[1-9]|1[0-2])$/, 'Mês inválido (use AAAA-MM).')
     .refine((value) => value >= '2000-01' && value <= '2100-12', 'Mês fora do intervalo permitido.'),
 });
+
+export const proximosQuerySchema = z.object({
+  limite: z.coerce
+    .number({ error: 'Limite inválido.' })
+    .int('Limite inválido.')
+    .min(1, 'Limite inválido.')
+    .max(20, 'Limite máximo: 20.')
+    .default(5),
+});

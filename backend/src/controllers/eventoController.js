@@ -24,3 +24,8 @@ export async function remove(req, res) {
   await eventoService.deleteEvento(req.user, req.params.id);
   res.status(200).json({ success: true, message: 'Evento excluído.' });
 }
+
+export async function proximos(req, res) {
+  const data = await eventoService.getProximos(req.user, req.validatedQuery);
+  res.status(200).json({ success: true, data });
+}

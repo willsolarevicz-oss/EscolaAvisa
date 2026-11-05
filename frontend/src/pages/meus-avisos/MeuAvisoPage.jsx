@@ -6,6 +6,7 @@ import { Button } from '../../components/Button';
 import { PageHeader } from '../../components/PageHeader';
 import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { getMeuAviso, marcarAvisoComoLido } from '../../services/avisoService';
+import { notificarMudancaContadores } from '../../services/contadorService';
 import { avisoPublicoLabel, formatDateTime } from '../../utils/formatters';
 import formStyles from '../../styles/FormPage.module.css';
 import styles from '../../styles/Comunicado.module.css';
@@ -20,7 +21,10 @@ export function MeuAvisoPage() {
       // Registro de leitura em segundo plano: se falhar, o aviso continua visível e
       // a leitura será registrada na próxima vez que for aberto.
       marcarAvisoComoLido(aviso.id)
-        .then(({ visualizadoEm }) => loader.setData((prev) => ({ ...prev, lido: true, visualizadoEm })))
+        .then(({ visualizadoEm }) => {
+          loader.setData((prev) => ({ ...prev, lido: true, visualizadoEm }));
+          notificarMudancaContadores();
+        })
         .catch((error) => console.warn('Não foi possível registrar a leitura do aviso.', error));
     },
   });

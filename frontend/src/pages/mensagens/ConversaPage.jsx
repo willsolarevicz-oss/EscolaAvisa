@@ -9,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { useFlashMessage } from '../../hooks/useFlashMessage';
 import { getApiErrorMessage } from '../../services/api';
+import { notificarMudancaContadores } from '../../services/contadorService';
 import { enviarMensagem, getConversa, marcarConversaLida } from '../../services/conversaService';
 import { formatDateTime } from '../../utils/formatters';
 import { canalLabel, outroLado } from '../../utils/mensagens';
@@ -20,9 +21,11 @@ const MAX_CONTEUDO = 5000;
 /** Marca como lida ao abrir. Se falhar, a conversa continua utilizável (só segue contando como nova). */
 function marcarLidaSePreciso(conversa) {
   if (conversa.naoLidas === 0) return;
-  marcarConversaLida(conversa.id).catch((error) => {
-    console.warn('[mensagens] não foi possível marcar a conversa como lida:', getApiErrorMessage(error));
-  });
+  marcarConversaLida(conversa.id)
+    .then(notificarMudancaContadores)
+    .catch((error) => {
+      console.warn('[mensagens] não foi possível marcar a conversa como lida:', getApiErrorMessage(error));
+    });
 }
 
 export function ConversaPage() {
@@ -58,6 +61,7 @@ export function ConversaPage() {
     setSendError('');
     try {
       loader.setData(await enviarMensagem(id, conteudo));
+      notificarMudancaContadores();
       setTexto('');
     } catch (error) {
       setSendError(getApiErrorMessage(error, 'Não foi possível enviar a mensagem.'));

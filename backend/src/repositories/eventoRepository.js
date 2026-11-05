@@ -12,6 +12,7 @@ const SELECT_EVENTO = `
 // Evento que cruza o período [$1, $2] (inclusive), mesmo começando antes ou terminando depois.
 const NO_PERIODO = 'e.data_inicio <= $2::date AND e.data_fim >= $1::date';
 const ORDEM = 'ORDER BY e.data_inicio ASC, e.data_fim ASC, e.titulo ASC, e.id ASC';
+// `limite` opcional: LIMIT NULL no PostgreSQL significa "sem limite" (calendário do mês).
 
 export async function findById(id) {
   const { rows } = await pool.query(`${SELECT_EVENTO} WHERE e.id = $1`, [id]);
@@ -19,21 +20,22 @@ export async function findById(id) {
 }
 
 /** ADMIN: todos os eventos do período. */
-export async function listNoPeriodo({ inicio, fim }) {
-  const { rows } = await pool.query(`${SELECT_EVENTO} WHERE ${NO_PERIODO} ${ORDEM}`, [inicio, fim]);
+export async function listNoPeriodo({ inicio, fim, limite = null }) {
+  const { rows } = await pool.query(`${SELECT_EVENTO} WHERE ${NO_PERIODO} ${ORDEM} LIMIT $3`, [inicio, fim, limite]);
   return rows;
 }
 
 /** PROFESSOR: escola toda + turmas em que leciona + os que ele mesmo criou. */
-export async function listNoPeriodoParaProfessor({ inicio, fim, professorId }) {
+export async function listNoPeriodoParaProfessor({ inicio, fim, professorId, limite = null }) {
   const { rows } = await pool.query(
     `${SELECT_EVENTO}
      WHERE ${NO_PERIODO}
        AND (e.turma_id IS NULL
             OR e.autor_id = $3
             OR EXISTS (SELECT 1 FROM professor_turma pt WHERE pt.turma_id = e.turma_id AND pt.professor_id = $3))
-     ${ORDEM}`,
-    [inicio, fim, professorId],
+     ${ORDEM}
+     LIMIT $4`,
+    [inicio, fim, professorId, limite],
   );
   return rows;
 }
@@ -42,7 +44,7 @@ export async function listNoPeriodoParaProfessor({ inicio, fim, professorId }) {
  * RESPONSAVEL: escola toda + turmas em que algum aluno dele tem matrícula ativa.
  * Mesma regra de vínculo das comunicações (responsável autorizado, aluno ativo).
  */
-export async function listNoPeriodoParaResponsavel({ inicio, fim, usuarioId }) {
+export async function listNoPeriodoParaResponsavel({ inicio, fim, usuarioId, limite = null }) {
   const { rows } = await pool.query(
     `${SELECT_EVENTO}
      WHERE ${NO_PERIODO}
@@ -51,8 +53,9 @@ export async function listNoPeriodoParaResponsavel({ inicio, fim, usuarioId }) {
               `EXISTS (SELECT 1 FROM aluno_turma atm
                        WHERE atm.aluno_id = a.id AND atm.turma_id = e.turma_id AND atm.ativo)`,
             )}))
-     ${ORDEM}`,
-    [inicio, fim, usuarioId],
+     ${ORDEM}
+     LIMIT $4`,
+    [inicio, fim, usuarioId, limite],
   );
   return rows;
 }
