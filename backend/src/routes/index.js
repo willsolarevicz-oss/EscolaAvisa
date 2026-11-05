@@ -10,6 +10,7 @@ import { calendarioRoutes, eventoRoutes } from './eventoRoutes.js';
 import { meRoutes } from './meRoutes.js';
 import { notaRoutes } from './notaRoutes.js';
 import { ocorrenciaRoutes } from './ocorrenciaRoutes.js';
+import { relatorioRoutes } from './relatorioRoutes.js';
 import { turmaRoutes } from './turmaRoutes.js';
 import { usuarioRoutes } from './usuarioRoutes.js';
 
@@ -28,4 +29,5 @@ apiRoutes.use('/notas', notaRoutes);
 apiRoutes.use('/calendario', calendarioRoutes);
 apiRoutes.use('/eventos', eventoRoutes);
 apiRoutes.use('/conversas', conversaRoutes);
+apiRoutes.use('/relatorios', relatorioRoutes);
 apiRoutes.use('/me', meRoutes);

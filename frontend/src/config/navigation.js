@@ -2,6 +2,7 @@ import {
   Bell,
   BookOpen,
   CalendarDays,
+  ChartColumn,
   ClipboardList,
   GraduationCap,
   HeartHandshake,
@@ -22,7 +23,10 @@ import {
 export const NAVIGATION = [
   {
     title: 'Principal',
-    items: [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, available: true }],
+    items: [
+      { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, available: true },
+      { label: 'Relatórios', to: '/relatorios', icon: ChartColumn, available: true, roles: ['ADMIN', 'PROFESSOR'] },
+    ],
   },
   {
     title: 'Acadêmico',

@@ -4,7 +4,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 10 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** e **dashboard com indicadores reais e contadores na sidebar**.
+> **Status:** Fases 1 a 12 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** e **relatórios** (leitura de avisos, ocorrências e notas).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -219,6 +219,9 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | POST   | `/api/conversas/:id/lida` | participante | Marca a conversa como lida                |
 | GET    | `/api/me/contadores` | todos | Números da sidebar (mensagens novas; avisos/ocorrências pendentes do responsável) |
 | GET    | `/api/calendario/proximos` | todos | Próximos eventos (`limite`, padrão 5) + próximo feriado nacional |
+| GET    | `/api/relatorios/avisos` | ADMIN, PROFESSOR | Leitura de avisos no período (`inicio`, `fim`; padrão 1º/jan–hoje) |
+| GET    | `/api/relatorios/ocorrencias` | ADMIN, PROFESSOR | Ocorrências no período: por tipo, por turma, alunos com mais |
+| GET    | `/api/relatorios/notas` | ADMIN, PROFESSOR | Médias por disciplina/bimestre da turma e alunos abaixo da nota de corte |
 
 Rotas autenticadas exigem o cabeçalho `Authorization: Bearer <token>`.
 Erros seguem o formato `{ "success": false, "message": "..." }`.
