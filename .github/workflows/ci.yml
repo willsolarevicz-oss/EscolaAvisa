@@ -1,0 +1,92 @@
+# CI do EscolaAvis: roda em todo PR e em todo push na main.
+# Dois jobs em paralelo (máquinas limpas): backend (testes com PostgreSQL de verdade)
+# e frontend (lint + build). Se algum falhar, o PR mostra ❌.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Um push novo no mesmo PR cancela a execução antiga (economiza minutos).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (testes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    # PostgreSQL descartável, só existe durante este job (senha fixa não é segredo:
+    # o banco não é acessível de fora e é destruído no fim).
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: escolaavis
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: escolaavis_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U escolaavis -d escolaavis_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # O nome precisa terminar com _test (os testes recusam limpar outro banco).
+      TEST_DATABASE_URL: postgres://escolaavis:ci_only_password@localhost:5432/escolaavis_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # Gerado a cada execução: nenhum segredo fica no repositório.
+      - name: Gerar JWT_SECRET temporário
+        run: echo "JWT_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Testes (migrations + API)
+        run: npm test
+
+  frontend:
+    name: Frontend (lint e build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

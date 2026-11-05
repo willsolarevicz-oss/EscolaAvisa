@@ -1,5 +1,7 @@
 # EscolaAvis
 
+[![CI](https://github.com/willsolarevicz-oss/EscolaAvisa/actions/workflows/ci.yml/badge.svg)](https://github.com/willsolarevicz-oss/EscolaAvisa/actions/workflows/ci.yml)
+
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
 > **Status:** Fases 1 a 10 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** e **dashboard com indicadores reais e contadores na sidebar**.
@@ -243,6 +245,15 @@ Erros seguem o formato `{ "success": false, "message": "..." }`.
 | `npm run build`   | Build de produção em `frontend/dist`         |
 | `npm run preview` | Serve o build localmente (porta 4173)        |
 | `npm run lint`    | ESLint                                       |
+
+### Integração contínua (GitHub Actions)
+
+Todo PR e todo push na `main` rodam `.github/workflows/ci.yml` em máquinas limpas do GitHub:
+
+- **Backend:** `npm ci` + `npm test` contra um PostgreSQL 17 descartável (service container). O `JWT_SECRET` é gerado a cada execução; nenhum segredo fica no repositório.
+- **Frontend:** `npm ci` + `npm run lint` + `npm run build`.
+
+O resultado aparece no PR (✅/❌) e no selo do topo deste README. Para reproduzir localmente, rode os mesmos comandos numa cópia sem `.env` e sem `node_modules`.
 
 ## Problemas comuns
 
