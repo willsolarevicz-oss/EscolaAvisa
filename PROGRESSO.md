@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 11 (CI no GitHub Actions). Branch: `feat/fase-11-ci`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–10 já na `main` via PRs #1 a #4; cada fase nova entra por PR e agora passa pela CI).
+> Última atualização: 2026-11-05 — fim da Fase 12 (relatórios). Branch: `feat/fase-12-relatorios`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–11 já na `main` via PRs #1 a #5; cada fase nova entra por PR e passa pela CI).
 
 ---
 
@@ -54,10 +54,11 @@ escola-avisa/
         │                    (confirmar + ativar/desativar em listagens), useEntityLoader (carregar registro
         │                    por id: loading/notfound/error/reload — usado em todos os formulários e detalhes),
         │                    useTurmasDisponiveis (turmas que o usuário pode escolher: avisos e eventos),
-        │                    useContadores (números da sidebar: troca de página, 60 s e evento "algo foi lido")
+        │                    useContadores (números da sidebar: troca de página, 60 s e evento "algo foi lido"),
+        │                    useRelatorio (busca por parâmetros, mantém o resultado anterior enquanto recarrega)
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
-        │                    notaService, eventoService, conversaService, contadorService
+        │                    notaService, eventoService, conversaService, contadorService, relatorioService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
@@ -75,18 +76,21 @@ escola-avisa/
         │                    ocorrencias/ (lista, registro, detalhe com ciência), minhas-ocorrencias/ (responsável),
         │                    notas/ (turmas e grade de lançamento), boletim/ (responsável),
         │                    calendario/ (calendário mensal e formulário de evento),
-        │                    mensagens/ (lista de conversas, nova conversa, conversa em balões)
+        │                    mensagens/ (lista de conversas, nova conversa, conversa em balões),
+        │                    relatorios/ (abas avisos/ocorrências/notas; StatTile, Secao e BarList em RelatorioPartes)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors),
         │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend),
         │                    calendario (grade do mês, navegação entre meses, tipos de evento),
-        │                    mensagens (outroLado: "Secretaria" / "Prof. Fulano" / nome do responsável)
+        │                    mensagens (outroLado: "Secretaria" / "Prof. Fulano" / nome do responsável),
+        │                    relatorios (formatPercent, período padrão/da URL, corteValido)
         └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
                              (estilos compartilhados por todas as listagens e formulários),
                              RelationSection.module.css (seções de vínculos: responsáveis, alunos, professores),
                              Comunicado.module.css (telas de avisos e ocorrências: conteúdo, leitores, feed),
                              Notas.module.css (grade de lançamento e boletim),
                              Calendario.module.css (grade mensal; no celular vira marcadores + lista),
-                             Mensagens.module.css (balões da conversa e campo de resposta)
+                             Mensagens.module.css (balões da conversa e campo de resposta),
+                             Relatorios.module.css (números de resumo, barras de uma cor, filtros)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
@@ -178,9 +182,13 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 - [x] **Dashboard com dados reais (Fase 10)**: cada perfil vê só os cards que pode usar (sem "Restrito"/"Em breve"): ADMIN 5 (alunos, turmas, avisos, ocorrências, mensagens), PROFESSOR 3, RESPONSAVEL 3 (avisos não lidos, ocorrências aguardando ciência, conversas com mensagem nova). Painel "Próximos eventos" (até 5, ainda não terminados, respeitando a visibilidade) com o próximo feriado nacional. Removido o aviso "Em construção"
 - [x] **Contadores na sidebar**: Mensagens (todos), Meus avisos e Minhas ocorrências (responsável), vindos de `GET /api/me/contadores` (uma chamada). Atualizam ao trocar de página, a cada 60 s com a aba visível e na hora em que a tela lê algo (conversa aberta/respondida, aviso lido, ciência). No celular, um ponto no botão de menu indica que há algo novo
 - [x] **CI no GitHub Actions (Fase 11)**: `.github/workflows/ci.yml` roda em todo PR e push na `main`. Job backend: PostgreSQL 17 como service container, `npm ci` + `npm test` (JWT_SECRET gerado a cada execução). Job frontend: `npm ci` + lint + build. Execuções antigas do mesmo PR são canceladas. Selo de status no README. Simulado antes numa cópia limpa do repositório (sem `.env`/`node_modules`): 182/182, lint e build OK
-- [x] **Testes automatizados: 182 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar)
+- [x] **Relatórios (Fase 12)** em `/relatorios`, abas na URL. ADMIN vê a escola toda; PROFESSOR só os avisos e ocorrências dele e as turmas/disciplinas em que leciona:
+  - **Leitura de avisos** (período, padrão 1º/jan–hoje, máx. 1 ano): resumo (avisos, destinatários, % lida), leitura por turma (avisos para a turma), 10 responsáveis com mais não lidos, avisos do período com barra de leitura (até 100)
+  - **Ocorrências** (período): total, alunos, % de ciência; por tipo (barras de uma cor); por turma do aluno no ano da ocorrência; 10 alunos com mais ocorrências (tipos, última data, turma atual)
+  - **Notas** (turma + nota de corte digitada, padrão 6,0): por disciplina, média da turma e notas lançadas em cada bimestre, média da turma (das médias dos alunos, mesma regra do boletim) e alunos abaixo do corte (menor média primeiro). Corte inválido mostra erro sem apagar o relatório
+- [x] **Testes automatizados: 191 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar), relatórios (9 testes: números conferidos à mão nos três relatórios, escopo do professor, período/corte inválidos, taxa null sem base)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
-- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px)
+- [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px); relatórios (números das três abas conferidos com os dados criados, corte 9 lista os dois alunos, corte inválido mantém o relatório, professora vendo só o aviso dela, celular sem rolagem lateral)
 - [x] ESLint sem avisos e build de produção do frontend OK
 
 ## Endpoints existentes
@@ -254,6 +262,9 @@ O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas at
 | POST   | `/api/conversas/:id/lida` | participante | Marca como lida até a última mensagem (do lado de quem chama) |
 | GET    | `/api/me/contadores` | todos | `{ mensagensNaoLidas }` + RESPONSAVEL: `avisosNaoLidos`, `ocorrenciasPendentes`. Reaproveita as consultas das listas |
 | GET    | `/api/calendario/proximos?limite=5` | todos | `{ eventos, proximoFeriado: { data, nome } \| null, feriadosDisponiveis }` (limite 1–20) |
+| GET    | `/api/relatorios/avisos?inicio=&fim=` | ADMIN, PROFESSOR (os dele) | `{ periodo, resumo, avisos, avisosTruncados, porTurma, responsaveisComPendencias }`. Taxas como fração 0–1 (null sem base) |
+| GET    | `/api/relatorios/ocorrencias?inicio=&fim=` | ADMIN, PROFESSOR (as dele) | `{ periodo, resumo, porTipo, porTurma, alunos }` |
+| GET    | `/api/relatorios/notas?turmaId=&notaCorte=6` | ADMIN, PROFESSOR (turma/disciplinas dele; senão 403) | `{ turma, notaCorte, totalAlunos, disciplinas: [{ disciplina, bimestres, alunosComNota, mediaTurma, abaixoDoCorte }] }` |
 
 Formato de sucesso: `{ success: true, data: {...} }`. Formato de erro: `{ success: false, message, errors? }` (`errors` = lista `{ field, message }` em erros de validação).
 Usuário na API sempre em camelCase: `{ id, nome, email, tipoUsuario, ativo, criadoEm, atualizadoEm }` — nunca contém senha/hash.
@@ -272,7 +283,7 @@ Banco local criado nesta máquina: role `escolaavis`, bancos `escolaavis` e `esc
 
 Módulos (cada um precisa de backend + frontend + testes):
 - [ ] Integração BrasilAPI: CEP no cadastro (feriados já feitos na Fase 8)
-- [ ] Relatórios
+- [ ] Relatórios: exportar CSV/PDF e gráfico de evolução ao longo do tempo (não pedidos na Fase 12).
 
 Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Logout é só no cliente (JWT stateless). Se precisar invalidar tokens no servidor: tabela de tokens revogados ou campo `token_version` em `usuarios`.
@@ -301,11 +312,11 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 ## Próxima etapa
 
-Candidatos para a **Fase 12** (decidir com o usuário):
+Candidatos para a **Fase 13** (decidir com o usuário):
 
-1. **Relatórios** (ex.: leitura de avisos por turma, ocorrências por período, médias por turma/disciplina).
-2. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor, tela de Responsáveis).
-3. **Testes do frontend** (Vitest + Testing Library) entrando no job de frontend da CI.
+1. **Dívidas técnicas listadas em Pendências** (busca sem acento, filtros perdidos após salvar, achados da revisão, "Minhas turmas" do professor, tela de Responsáveis).
+2. **Testes do frontend** (Vitest + Testing Library) entrando no job de frontend da CI.
+3. **Exportar relatórios** (CSV) para a coordenação usar em planilhas.
 
 ## Decisões técnicas
 
@@ -395,3 +406,9 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 82. **CI com GitHub Actions** (2026-11-05): dois jobs paralelos em máquina limpa; backend testa contra PostgreSQL 17 real (service container), não mock. Node pela `.nvmrc`; cache do npm por `package-lock.json`.
 83. **Nenhum segredo na CI**: `JWT_SECRET` gerado por `openssl rand` a cada execução; a senha do PostgreSQL da CI é fixa no YAML porque o banco é descartável e inacessível de fora.
 84. **`npm audit` informativo, não bloqueante**: as vulnerabilidades atuais vêm de dependência transitiva de ferramenta de migration; bloquear o PR por isso impediria qualquer entrega até o fornecedor corrigir.
+85. **Relatórios definidos pelo usuário (2026-11-05)**: leitura de avisos, ocorrências e notas; ADMIN vê a escola toda, PROFESSOR só o que é dele.
+86. **Contam só avisos/ocorrências ativos** (o que o responsável de fato vê). Período padrão 1º/jan–hoje, no máximo 1 ano; `publicado_em` é filtrado até o fim do dia final.
+87. **Taxas como fração 0–1 e `null` sem base**: "0%" de algo que não teve destinatário seria mentira; a tela mostra "—".
+88. **Ocorrência por turma usa a turma do aluno no ano da ocorrência** (matrícula ativa, ou a mais recente se transferido), não a turma atual. Ranking de alunos mostra a turma atual.
+89. **Média da turma = média das médias dos alunos** (cada aluno pela regra do boletim); média do bimestre = média das notas lançadas naquele bimestre. Só alunos com matrícula ativa.
+90. **Gráficos simples e honestos**: barras de UMA cor para uma série (sem colorir por tipo, sem cores de status), valor escrito ao lado; números grandes no resumo; tabelas para o resto.

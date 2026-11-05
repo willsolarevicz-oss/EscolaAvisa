@@ -21,6 +21,7 @@ import { NotasTurmasPage } from '../pages/notas/NotasTurmasPage';
 import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage';
 import { OcorrenciaFormPage } from '../pages/ocorrencias/OcorrenciaFormPage';
 import { OcorrenciasListPage } from '../pages/ocorrencias/OcorrenciasListPage';
+import { RelatoriosPage } from '../pages/relatorios/RelatoriosPage';
 import { MeusAvisosPage } from '../pages/meus-avisos/MeusAvisosPage';
 import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
 import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
@@ -77,6 +78,7 @@ export function AppRoutes() {
             <Route path="/notas/turmas/:turmaId/disciplinas/:disciplinaId" element={<GradeNotasPage />} />
             <Route path="/calendario/eventos/novo" element={<EventoFormRoute />} />
             <Route path="/calendario/eventos/:id/editar" element={<EventoFormRoute />} />
+            <Route path="/relatorios" element={<RelatoriosPage />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['RESPONSAVEL']} />}>

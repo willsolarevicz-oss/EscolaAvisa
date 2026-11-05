@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const BIMESTRES = Object.freeze([1, 2, 3, 4]);
 
 // Uma casa decimal: 7.5 ok, 7.25 não. Compara com tolerância por causa do ponto flutuante.
-const umaCasaDecimal = (value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-9;
+export const umaCasaDecimal = (value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-9;
 
 const valorSchema = z
   .number({ error: 'Nota inválida.' })
