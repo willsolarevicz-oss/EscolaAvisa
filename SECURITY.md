@@ -1,6 +1,6 @@
-# Segurança do EscolaAvis
+# Segurança do EscolaAvisa
 
-O EscolaAvis guarda dados pessoais de **crianças e adolescentes** e de suas famílias. Segurança aqui não é opcional.
+O EscolaAvisa guarda dados pessoais de **crianças e adolescentes** e de suas famílias. Segurança aqui não é opcional.
 
 ## Como reportar uma vulnerabilidade
 

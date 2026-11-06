@@ -49,7 +49,7 @@ describe('POST /api/auth/login', () => {
     assert.ok(expiresIn > 0);
     assert.equal(user.email, ADMIN.email);
     assert.equal(user.tipoUsuario, 'ADMIN');
-    assert.equal(user.nome, 'Administrador EscolaAvis');
+    assert.equal(user.nome, 'Administrador EscolaAvisa');
     assert.equal(user.senha, undefined);
     assert.equal(user.senha_hash, undefined);
     assert.ok(!JSON.stringify(res.body).includes('$2b$'), 'resposta não pode conter hash bcrypt');
@@ -61,7 +61,7 @@ describe('POST /api/auth/login', () => {
   });
 
   it('aceita e-mail com maiúsculas e espaços', async () => {
-    const res = await loginAs({ email: '  ADMIN@EscolaAvis.com ', senha: ADMIN.senha });
+    const res = await loginAs({ email: '  ADMIN@EscolaAvisa.com ', senha: ADMIN.senha });
     assert.equal(res.status, 200);
   });
 

@@ -7,7 +7,7 @@ import { hashPassword } from '../src/utils/password.js';
 const DEV_ADMIN_PASSWORD = 'Admin@123';
 
 export const ADMIN_SEED = Object.freeze({
-  nome: 'Administrador EscolaAvis',
+  nome: 'Administrador EscolaAvisa',
   email: 'admin@escolaavis.com',
 });
 

@@ -1,0 +1,50 @@
+# Blueprint do Render: DEMONSTRAÇÃO de um dia (plano gratuito). Não usar para dados reais.
+# - Um serviço só: o backend entrega a API em /api e o site compilado no mesmo endereço.
+# - Banco PostgreSQL novo e vazio (só o admin do seed); sem acesso externo ao banco.
+# - Segredos gerados pelo Render (JWT_SECRET, senha do admin): veja em Environment no painel.
+# - Plano gratuito: o serviço "dorme" após 15 min sem acesso (o 1º acesso demora ~1 min)
+#   e o banco gratuito expira em 30 dias. Depois da demonstração, apague o serviço e o banco.
+
+databases:
+  - name: escolaavis-demo-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "17"
+    databaseName: escolaavis
+    user: escolaavis
+    # Lista vazia: o banco só aceita conexões da rede interna do Render (da API).
+    ipAllowList: []
+
+services:
+  - type: web
+    name: escolaavis-demo
+    runtime: node
+    plan: free
+    region: virginia
+    branch: deploy/render-demo
+    # O frontend precisa das devDependencies (Vite) para compilar; o backend roda só com as de produção.
+    buildCommand: cd frontend && npm ci --include=dev && npm run build && cd ../backend && npm ci --omit=dev
+    # Plano gratuito não tem preDeployCommand: migrations e seed (ambos idempotentes) rodam a cada início.
+    startCommand: cd backend && npm run migrate && npm run seed && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22.17.1"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: escolaavis-demo-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_ADMIN_PASSWORD
+        generateValue: true
+      # O Render tem um proxy na frente da API: sem isso o rate limit veria todos com o mesmo IP.
+      - key: TRUST_PROXY
+        value: "1"
+      # Site e API no mesmo endereço: o frontend chama /api (relativo) e o backend entrega o build.
+      - key: VITE_API_URL
+        value: /api
+      - key: FRONTEND_DIST_DIR
+        value: ../frontend/dist

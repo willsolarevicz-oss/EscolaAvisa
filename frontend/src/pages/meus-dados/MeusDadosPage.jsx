@@ -20,7 +20,7 @@ function baixar(dados) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `escolaavis-meus-dados-${dados.geradoEm.slice(0, 10)}.json`;
+  link.download = `escolaavisa-meus-dados-${dados.geradoEm.slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }

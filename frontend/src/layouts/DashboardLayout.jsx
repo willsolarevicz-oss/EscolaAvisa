@@ -20,7 +20,7 @@ export function DashboardLayout({ title }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const contadores = useContadores();
   const temPendencias = Object.values(contadores).some((n) => n > 0);
-  const headerTitle = title ?? findNavItemByPath(pathname)?.label ?? 'EscolaAvis';
+  const headerTitle = title ?? findNavItemByPath(pathname)?.label ?? 'EscolaAvisa';
 
   // Esc fecha a gaveta no celular/tablet.
   useEffect(() => {

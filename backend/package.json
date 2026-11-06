@@ -2,7 +2,7 @@
   "name": "escolaavis-backend",
   "version": "0.1.0",
   "private": true,
-  "description": "API do EscolaAvis (Node.js + Express + PostgreSQL)",
+  "description": "API do EscolaAvisa (Node.js + Express + PostgreSQL)",
   "type": "module",
   "main": "src/server.js",
   "engines": {

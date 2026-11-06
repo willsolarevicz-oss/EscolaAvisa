@@ -1,4 +1,4 @@
-# CI do EscolaAvis: roda em todo PR e em todo push na main.
+# CI do EscolaAvisa: roda em todo PR e em todo push na main.
 # Dois jobs em paralelo (máquinas limpas): backend (testes com PostgreSQL de verdade)
 # e frontend (lint + testes + build). Se algum falhar, o PR mostra ❌.
 name: CI

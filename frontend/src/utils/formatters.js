@@ -121,7 +121,7 @@ export function maskTelefone(value) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
-/** "Administrador EscolaAvis" -> "AE" */
+/** "Administrador EscolaAvisa" -> "AE" */
 export function getInitials(nome = '') {
   const parts = nome.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';

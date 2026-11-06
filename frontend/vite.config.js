@@ -11,14 +11,15 @@ import react from '@vitejs/plugin-react';
  *   (ver SECURITY.md).
  */
 function contentSecurityPolicy(apiUrl) {
-  const apiOrigin = new URL(apiUrl).origin;
+  // API relativa ("/api", site e API no mesmo endereço) já está coberta por 'self'.
+  const apiOrigin = apiUrl.startsWith('/') ? '' : new URL(apiUrl).origin;
   const politica = [
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    `connect-src 'self' ${apiOrigin}`,
+    `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

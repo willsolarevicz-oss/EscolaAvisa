@@ -7,7 +7,7 @@ export function TermosPage() {
   const { nome, cnpj, endereco, contato, fornecedor } = INSTITUICAO;
   return (
     <DocumentoLayout titulo="Termos de Uso">
-      <h2>1. O que é o EscolaAvis</h2>
+      <h2>1. O que é o EscolaAvisa</h2>
       <p>
         Sistema de comunicação entre a escola e as famílias: avisos, ocorrências, notas, calendário e mensagens. Ao acessar,
         você concorda com estes Termos e com a <Link to="/privacidade">Política de Privacidade</Link>.

@@ -89,7 +89,7 @@ export function LoginPage() {
             ))}
           </ul>
         </div>
-        <p className={styles.brandFooter}>© {new Date().getFullYear()} EscolaAvis</p>
+        <p className={styles.brandFooter}>© {new Date().getFullYear()} EscolaAvisa</p>
       </aside>
 
       <main className={styles.formPanel}>

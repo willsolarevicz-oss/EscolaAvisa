@@ -101,7 +101,7 @@ describe('Constraints de usuarios', () => {
 
   it('e-mail precisa estar normalizado (minúsculas)', async () => {
     await expectPgError(
-      `INSERT INTO usuarios (nome, email, senha_hash, tipo_usuario) VALUES ('X', 'Admin@EscolaAvis.com', 'h', 'ADMIN')`,
+      `INSERT INTO usuarios (nome, email, senha_hash, tipo_usuario) VALUES ('X', 'Admin@EscolaAvisa.com', 'h', 'ADMIN')`,
       [],
       '23514',
       'usuarios_email_normalizado_check',

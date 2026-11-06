@@ -90,7 +90,7 @@ describe('Publicação de avisos', () => {
     assert.equal(aviso.totalDestinatarios, 2); // R1 e R3 (R2 não autorizado, R4 inativo)
     assert.equal(aviso.totalLidos, 0);
     assert.equal(aviso.conteudo, 'Sexta, 19h.\nCompareçam!');
-    assert.equal(aviso.autor.nome, 'Administrador EscolaAvis');
+    assert.equal(aviso.autor.nome, 'Administrador EscolaAvisa');
 
     const detalhe = await api('get', `/api/avisos/${aviso.id}`);
     assert.deepEqual(detalhe.body.data.aviso.destinatarios.map((d) => d.usuario.nome).sort(), ['Usuário R1', 'Usuário R3']);

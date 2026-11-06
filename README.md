@@ -1,4 +1,4 @@
-# EscolaAvis
+# EscolaAvisa
 
 [![CI](https://github.com/willsolarevicz-oss/EscolaAvisa/actions/workflows/ci.yml/badge.svg)](https://github.com/willsolarevicz-oss/EscolaAvisa/actions/workflows/ci.yml)
 

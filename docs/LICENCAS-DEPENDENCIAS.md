@@ -3,7 +3,7 @@
 > Gerado por `npm run licencas` (no `backend/`) a partir dos `package-lock.json`. Não edite à mão.
 > Só dependências de **produção** (as de desenvolvimento não são distribuídas).
 
-O EscolaAvis é software proprietário (ver [LICENSE](../LICENSE)). Todas as dependências abaixo usam
+O EscolaAvisa é software proprietário (ver [LICENSE](../LICENSE)). Todas as dependências abaixo usam
 licenças **permissivas**, que permitem o uso em software fechado desde que os avisos de copyright
 delas sejam mantidos (eles ficam dentro de cada pacote em `node_modules` e no bundle do frontend).
 A CI roda `npm run licencas -- --verificar` e falha se aparecer licença copyleft ou desconhecida.

@@ -45,6 +45,6 @@ describe('Meus dados', () => {
     await user.click(screen.getByRole('button', { name: /baixar meus dados/i }));
     const blob = createObjectURL.mock.calls[0][0];
     expect(JSON.parse(await blob.text()).conta.email).toBe('rita@familia.com');
-    expect(clique.baixado).toBe('escolaavis-meus-dados-2026-11-06.json');
+    expect(clique.baixado).toBe('escolaavisa-meus-dados-2026-11-06.json');
   });
 });

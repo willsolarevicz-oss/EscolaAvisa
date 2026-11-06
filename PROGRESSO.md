@@ -1,4 +1,4 @@
-# PROGRESSO — EscolaAvis
+# PROGRESSO — EscolaAvisa
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
 > Última atualização: 2026-11-06 — fim da Fase 18 (operação; última das 3 fases de conformidade com os "40 requisitos"). Branch: `feat/fase-18-operacao`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–17 já na `main` via PRs #1 a #10 e #16; cada fase nova entra por PR e passa pela CI). Licença: proprietária.
@@ -7,7 +7,7 @@
 
 ## Sistema
 
-O **EscolaAvis** é um sistema web de comunicação entre a escola e os responsáveis pelos alunos. Na versão completa terá: administradores, professores, responsáveis, alunos, turmas, disciplinas, notas, avisos, ocorrências, mensagens, calendário escolar, integração com a BrasilAPI e controle de visualização de comunicados.
+O **EscolaAvisa** é um sistema web de comunicação entre a escola e os responsáveis pelos alunos. Na versão completa terá: administradores, professores, responsáveis, alunos, turmas, disciplinas, notas, avisos, ocorrências, mensagens, calendário escolar, integração com a BrasilAPI e controle de visualização de comunicados.
 
 ## Tecnologias
 

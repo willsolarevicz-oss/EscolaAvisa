@@ -1,7 +1,7 @@
 import { GraduationCap } from 'lucide-react';
 import styles from './Logo.module.css';
 
-/** Marca do EscolaAvis. `variant="light"` para fundos escuros. */
+/** Marca do EscolaAvisa. `variant="light"` para fundos escuros. */
 export function Logo({ variant = 'dark', size = 'md' }) {
   return (
     <span className={`${styles.logo} ${styles[variant]} ${styles[size]}`}>
@@ -9,7 +9,7 @@ export function Logo({ variant = 'dark', size = 'md' }) {
         <GraduationCap strokeWidth={2.2} />
       </span>
       <span className={styles.wordmark}>
-        Escola<span className={styles.accent}>Avis</span>
+        Escola<span className={styles.accent}>Avisa</span>
       </span>
     </span>
   );

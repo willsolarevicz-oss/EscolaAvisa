@@ -113,5 +113,10 @@ export const env = Object.freeze({
   backupDir: path.resolve(backendRoot, process.env.BACKUP_DIR?.trim() || 'backups'),
   pgBinDir: process.env.PG_BIN_DIR?.trim() || '',
   auditoriaRetencaoDias: parseRetencaoAuditoria(process.env.AUDITORIA_RETENCAO_DIAS),
+  // Opcional: pasta do frontend compilado (frontend/dist). Definida, a API também entrega o site
+  // no mesmo endereço (hospedagem com um serviço só, ex.: Render). Vazia = só API (padrão).
+  frontendDistDir: process.env.FRONTEND_DIST_DIR?.trim()
+    ? path.resolve(backendRoot, process.env.FRONTEND_DIST_DIR.trim())
+    : '',
   backendRoot,
 });

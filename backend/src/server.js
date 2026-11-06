@@ -14,7 +14,7 @@ async function start() {
 
   const app = createApp();
   const server = app.listen(env.port, () => {
-    console.log(`[server] EscolaAvis API rodando em http://localhost:${env.port}/api (${env.nodeEnv})`);
+    console.log(`[server] EscolaAvisa API rodando em http://localhost:${env.port}/api (${env.nodeEnv})`);
   });
 
   const shutdown = (signal) => {

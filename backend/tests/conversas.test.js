@@ -184,7 +184,7 @@ describe('Visibilidade, mensagens e leitura', () => {
     const { conversa } = res.body.data;
     assert.equal(conversa.mensagens.length, 2);
     assert.equal(conversa.mensagens[1].lado, 'ESCOLA');
-    assert.equal(conversa.mensagens[1].autor.nome, 'Administrador EscolaAvis');
+    assert.equal(conversa.mensagens[1].autor.nome, 'Administrador EscolaAvisa');
 
     const lista = (await ok(api('get', '/api/conversas', 'R1'), 200)).items;
     assert.equal(lista[0].id, ids.SEC, 'conversa respondida vai para o topo');

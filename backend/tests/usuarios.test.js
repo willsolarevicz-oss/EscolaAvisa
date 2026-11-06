@@ -74,7 +74,7 @@ describe('Acesso a /api/usuarios', () => {
 
 describe('POST /api/usuarios', () => {
   it('cria professor (201) sem expor a senha', async () => {
-    const dados = novoUsuario({ email: '  Novo.Prof@EscolaAvis.com ' });
+    const dados = novoUsuario({ email: '  Novo.Prof@EscolaAvisa.com ' });
     const res = await api('post', '/api/usuarios').send(dados);
 
     assert.equal(res.status, 201);
@@ -242,7 +242,7 @@ describe('GET/PUT /api/usuarios/:id', () => {
   it('atualiza nome, e-mail, telefone e limpa o CPF', async () => {
     const res = await api('put', `/api/usuarios/${responsavelId}`).send({
       nome: 'Rita Mãe Atualizada',
-      email: 'Rita.Nova@EscolaAvis.com',
+      email: 'Rita.Nova@EscolaAvisa.com',
       telefone: '21988887777',
       cpf: '',
     });
@@ -272,7 +272,7 @@ describe('GET/PUT /api/usuarios/:id', () => {
 
   it('recusa telefone/CPF para quem não é responsável', async () => {
     const res = await api('put', `/api/usuarios/${adminId}`).send({
-      nome: 'Administrador EscolaAvis',
+      nome: 'Administrador EscolaAvisa',
       email: 'admin@escolaavis.com',
       cpf: CPF_VALIDO_1,
     });

@@ -1,4 +1,4 @@
-# Plano de resposta a incidentes — EscolaAvis
+# Plano de resposta a incidentes — EscolaAvisa
 
 Incidente de segurança = qualquer evento que comprometa a **confidencialidade, integridade ou
 disponibilidade** de dados pessoais: vazamento, acesso indevido (conta invadida, perfil vendo o que não

@@ -1,4 +1,4 @@
-# Operação — EscolaAvis
+# Operação — EscolaAvisa
 
 Rotinas para manter o sistema no ar e os dados seguros: backup, restauração, retenção (limpeza),
 monitoramento e operadores de dados. Os comandos rodam na pasta `backend/` e usam o `backend/.env`.
@@ -49,7 +49,7 @@ Windows (Agendador de Tarefas), no PowerShell como administrador:
 
 ```powershell
 $acao = New-ScheduledTaskAction -Execute 'npm.cmd' -Argument 'run backup -- --keep=14' -WorkingDirectory 'C:\escolaavis\backend'
-Register-ScheduledTask -TaskName 'EscolaAvis backup' -Action $acao -Trigger (New-ScheduledTaskTrigger -Daily -At 3am)
+Register-ScheduledTask -TaskName 'EscolaAvisa backup' -Action $acao -Trigger (New-ScheduledTaskTrigger -Daily -At 3am)
 ```
 
 Hospedagem com banco gerenciado (RDS, Cloud SQL, Supabase, Neon...): ative **também** o backup
