@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-05 — fim da Fase 14 (testes do frontend). Branch: `feat/fase-14-testes-frontend`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–13 já na `main` via PRs #1 a #7; cada fase nova entra por PR e passa pela CI).
+> Última atualização: 2026-11-06 — fim da Fase 15 (tela de Responsáveis). Branch: `feat/fase-15-responsaveis`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–14 já na `main` via PRs #1 a #8; cada fase nova entra por PR e passa pela CI).
 
 ---
 
@@ -58,7 +58,8 @@ escola-avisa/
         │                    useRelatorio (busca por parâmetros, mantém o resultado anterior enquanto recarrega)
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
-        │                    notaService, eventoService, conversaService, contadorService, relatorioService
+        │                    notaService, eventoService, conversaService, contadorService, relatorioService,
+        │                    responsavelService
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
@@ -78,7 +79,8 @@ escola-avisa/
         │                    calendario/ (calendário mensal e formulário de evento),
         │                    mensagens/ (lista de conversas, nova conversa, conversa em balões),
         │                    relatorios/ (abas avisos/ocorrências/notas; StatTile, Secao e BarList em RelatorioPartes),
-        │                    minhas-turmas/ (professor: turmas e alunos, com atalhos para notas, aviso, ocorrência e mensagem)
+        │                    minhas-turmas/ (professor: turmas e alunos, com atalhos para notas, aviso, ocorrência e mensagem),
+        │                    responsaveis/ (ADMIN: responsáveis com seus alunos + alerta de alunos sem responsável)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors),
         │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend),
         │                    calendario (grade do mês, navegação entre meses, tipos de evento),
@@ -96,7 +98,8 @@ escola-avisa/
                              Calendario.module.css (grade mensal; no celular vira marcadores + lista),
                              Mensagens.module.css (balões da conversa e campo de resposta),
                              Relatorios.module.css (números de resumo, barras de uma cor, filtros),
-                             MinhasTurmas.module.css (atalhos dos cartões de turma)
+                             MinhasTurmas.module.css (atalhos dos cartões de turma),
+                             Responsaveis.module.css (alunos do responsável e alerta)
     └── public/              favicon.svg, robots.txt (bloqueia indexação)
 ```
 
@@ -197,8 +200,9 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
   - **Filtros mantidos**: cada listagem lembra a própria URL (busca, filtros, página) na `sessionStorage` da aba; formulários e detalhes voltam para ela ao salvar, cancelar ou pela trilha
   - **Achados da revisão**: `migrate:down` pede confirmação ("sim" no terminal; `--yes` em script/CI) e mostra o banco afetado; `tokenStorage` registra (uma vez) quando o armazenamento falha; estado "deslogado" do `AuthProvider` em uma função só; 404 usa o componente `Button`
   - **Minhas turmas** (professor): cartões das turmas com atalhos para lançar notas por disciplina e enviar aviso; tela da turma com os alunos, quantos responsáveis podem receber comunicações e atalhos para registrar ocorrência e mandar mensagem (formulários já abrem com aluno/turma escolhidos)
-- [x] **Testes do frontend (Fase 14)**: Vitest + jsdom + Testing Library, API simulada com `vi.mock` (não precisa de backend). **17 testes**: utilitários (notas, calendário, relatórios, filtros lembrados, aluno da navegação), sidebar (contadores, "99+", itens por perfil), login (validação, e-mail sem espaços, erro da API), grade de notas (nota inválida não é enviada, vírgula, média ao vivo, envia só o que mudou, turma desativada só consulta), relatório de notas (corte padrão, corte inválido mantém o relatório). `npm test` no frontend; roda na CI
-- [x] **Testes automatizados do backend: 197 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar), relatórios (9 testes: números conferidos à mão nos três relatórios, escopo do professor, período/corte inválidos, taxa null sem base), dívidas técnicas (6 testes: busca sem acento em várias telas, % continua literal, Minhas turmas com permissões, `migrate:down` recusado sem confirmação rodando o script de verdade)
+- [x] **Tela de Responsáveis (Fase 15)** — só consulta + atalhos, decisão do usuário: lista os responsáveis (usuários com perfil Responsável) com telefone e os alunos de cada um (parentesco, "Principal", "Não recebe comunicações", aluno inativo); busca sem acento, filtros de situação e "sem aluno vinculado"; alerta com os alunos ATIVOS sem responsável que receba comunicações (sem vínculo, vínculo não autorizado ou responsável inativo), com link para o aluno. Editar leva à tela do usuário; "Novo responsável" abre o cadastro de usuário já com o perfil Responsável
+- [x] **Testes do frontend (Fase 14)**: Vitest + jsdom + Testing Library, API simulada com `vi.mock` (não precisa de backend). **21 testes**: utilitários (notas, calendário, relatórios, filtros lembrados, aluno da navegação), sidebar (contadores, "99+", itens por perfil), login (validação, e-mail sem espaços, erro da API), grade de notas (nota inválida não é enviada, vírgula, média ao vivo, envia só o que mudou, turma desativada só consulta), relatório de notas (corte padrão, corte inválido mantém o relatório), responsáveis (alunos e selos do vínculo, filtro "sem aluno", alerta só com pendência). `npm test` no frontend; roda na CI
+- [x] **Testes automatizados do backend: 202 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar), relatórios (9 testes: números conferidos à mão nos três relatórios, escopo do professor, período/corte inválidos, taxa null sem base), dívidas técnicas (6 testes: busca sem acento em várias telas, % continua literal, Minhas turmas com permissões, `migrate:down` recusado sem confirmação rodando o script de verdade), responsáveis (5 testes: alunos de cada responsável, busca/filtros, só ADMIN, quem conta como pendência e quando deixa de contar)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
 - [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px); relatórios (números das três abas conferidos com os dados criados, corte 9 lista os dois alunos, corte inválido mantém o relatório, professora vendo só o aviso dela, celular sem rolagem lateral); dívidas técnicas ("responsavel" acha "Carla Responsável", salvar usuário volta com busca e filtro, 404 com `Button`, Minhas turmas da professora com os três atalhos pré-preenchidos, celular)
 - [x] ESLint sem avisos e build de produção do frontend OK
@@ -252,6 +256,8 @@ O detalhe do aluno (`GET /api/alunos/:id`) também traz `turmas` (matrículas at
 | POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura (idempotente: guarda a primeira) |
 | GET    | `/api/me/turmas` | PROFESSOR | Turmas ativas em que leciona, com as disciplinas |
 | GET    | `/api/me/turmas/:turmaId/alunos` | PROFESSOR (que leciona na turma; senão 403) | `{ turma, alunos: [{ id, nome, matricula, responsaveisAutorizados }] }` |
+| GET    | `/api/responsaveis` | ADMIN | `{ items: [{ usuario, telefone, alunos: [{ id, nome, matricula, ativo, parentesco, principal, autorizado }] }], pagination }` (`busca`, `ativo`, `semAluno`) |
+| GET    | `/api/responsaveis/pendencias` | ADMIN | `{ total, alunos: [{ id, nome, matricula, turmaAtual, totalVinculos }] }` — alunos ativos sem responsável que receba comunicações (até 50) |
 | GET    | `/api/ocorrencias` | ADMIN, PROFESSOR | Query `page`, `pageSize`, `busca` (nome do aluno), `tipo`, `ativo`, `alunoId`. Professor vê só as próprias |
 | POST   | `/api/ocorrencias` | ADMIN, PROFESSOR | `{ alunoId, tipo, descricao, dataOcorrencia }` → 201. Professor: só alunos das suas turmas (403) |
 | GET    | `/api/ocorrencias/:id` | ADMIN, PROFESSOR (própria) | `{ ocorrencia }` com `ciencias: [{ usuario, ciente, cienteEm }]` |
@@ -306,8 +312,6 @@ Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Proteger a `main` no GitHub (exigir CI verde e PR para merge): é configuração do repositório (Settings → Branches), decisão do dono.
 - [ ] `npm audit` (2026-11-05): backend com 3 vulnerabilidades moderadas em `glob`/`minimatch`, dependências internas do `node-pg-migrate` (só lê a pasta de migrations, sem entrada do usuário). A correção sugerida rebaixa o `node-pg-migrate` 9 → 7 (quebra); aguardar versão nova. Frontend: 0 em produção, 4 moderadas em dev. O audit não bloqueia a CI.
 - [ ] Build do frontend avisa sobre bundle > 500 kB: dividir rotas com `React.lazy` se o carregamento inicial pesar.
-- [ ] Item "Responsáveis" da sidebar continua "Em breve": hoje responsáveis são geridos em Usuários (perfil Responsável) + vínculos na tela do aluno. Decidir se vale uma tela própria (ex.: lista de responsáveis com seus alunos).
-- [ ] Aluno sem nenhum responsável não tem alerta além do selo "Sem responsável" na lista.
 - [ ] Busca sem acento não usa índice (`unaccent` não é IMMUTABLE): se as tabelas crescerem muito, criar função wrapper IMMUTABLE + índice trigram.
 - [ ] Responsável vinculado a um aluno DEPOIS da publicação não recebe avisos antigos (consequência do snapshot; decidir se precisa de "reenvio").
 - [ ] Notificação fora do sistema (e-mail/push) quando um aviso é publicado.
@@ -322,12 +326,12 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 ## Próxima etapa
 
-Candidatos para a **Fase 15** (decidir com o usuário):
+Candidatos para a **Fase 16** (decidir com o usuário):
 
-1. **Tela de Responsáveis** (item da sidebar ainda "Em breve") e alerta para aluno sem responsável.
-2. **Exportar relatórios** (CSV) para a coordenação usar em planilhas.
-3. **Confirmação ao sair da grade de notas pelo menu** (migrar para o "data router" do React Router e usar `useBlocker`).
-4. **Mais testes do frontend** (formulários de cadastro, calendário, mensagens).
+1. **Exportar relatórios** (CSV) para a coordenação usar em planilhas.
+2. **Confirmação ao sair da grade de notas pelo menu** (migrar para o "data router" do React Router e usar `useBlocker`).
+3. **Mais testes do frontend** (formulários de cadastro, calendário, mensagens).
+4. **Virada de ano letivo** (encerrar matrículas do ano anterior em lote).
 
 ## Decisões técnicas
 
@@ -429,3 +433,5 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 94. **Pré-seleção entre telas**: aviso por `?turmaId=`; ocorrência e mensagem recebem o aluno no estado da navegação (o professor não tem acesso à rota de aluno do admin). O backend continua validando tudo.
 95. **Testes do frontend com Vitest + Testing Library** (aprovado pelo usuário em 2026-11-05, só dependências de desenvolvimento): Vitest usa a mesma configuração do Vite; jsdom simula o navegador; os testes procuram elementos como o usuário vê (rótulo, papel, texto), não por classe CSS.
 96. **API sempre simulada nos testes de tela** (`vi.mock` do service): testam a regra da TELA (o que mostra e o que envia); a regra da API já é coberta pelos testes do backend. Para simular erro, usar função comum que lança (um `vi.fn` que lança é relatado pelo Vitest como falha mesmo quando a tela captura o erro).
+97. **Tela de Responsáveis só consulta** (escolha do usuário, 2026-11-06): cadastro e dados pessoais continuam em Usuários, vínculos na tela do aluno — um caminho de cadastro só. A tela lista a partir de `usuarios` com perfil Responsável (o registro em `responsaveis` pode ainda não existir).
+98. **"Sem responsável" = família não recebe comunicações**: aluno ativo sem vínculo autorizado de usuário ativo (cobre sem vínculo, vínculo não autorizado e responsável desativado) — mesma regra de quem recebe avisos/ocorrências/boletim.

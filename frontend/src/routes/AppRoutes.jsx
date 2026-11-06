@@ -22,6 +22,7 @@ import { OcorrenciaDetailPage } from '../pages/ocorrencias/OcorrenciaDetailPage'
 import { OcorrenciaFormPage } from '../pages/ocorrencias/OcorrenciaFormPage';
 import { OcorrenciasListPage } from '../pages/ocorrencias/OcorrenciasListPage';
 import { RelatoriosPage } from '../pages/relatorios/RelatoriosPage';
+import { ResponsaveisListPage } from '../pages/responsaveis/ResponsaveisListPage';
 import { MinhaTurmaRoute } from '../pages/minhas-turmas/MinhaTurmaPage';
 import { MinhasTurmasPage } from '../pages/minhas-turmas/MinhasTurmasPage';
 import { MeusAvisosPage } from '../pages/meus-avisos/MeusAvisosPage';
@@ -58,6 +59,7 @@ export function AppRoutes() {
             <Route path="/usuarios" element={<UsuariosListPage />} />
             <Route path="/usuarios/novo" element={<UsuarioFormRoute />} />
             <Route path="/usuarios/:id/editar" element={<UsuarioFormRoute />} />
+            <Route path="/responsaveis" element={<ResponsaveisListPage />} />
             <Route path="/alunos" element={<AlunosListPage />} />
             <Route path="/alunos/novo" element={<AlunoFormRoute />} />
             <Route path="/alunos/:id/editar" element={<AlunoFormRoute />} />
