@@ -35,6 +35,10 @@ const ESPECIAIS = {
   'POST /api/alunos/:id/responsaveis': 'Vinculou responsável',
   'PUT /api/alunos/:id/responsaveis/:id': 'Editou vínculo de responsável',
   'DELETE /api/alunos/:id/responsaveis/:id': 'Removeu vínculo de responsável',
+  'POST /api/usuarios/:id/anonimizar': 'Anonimizou usuário',
+  'POST /api/me/termos/aceite': 'Aceitou a Política e os Termos',
+  // Gravada pelo script de retenção (npm run retencao), não por uma rota da API.
+  'DELETE script:retencao/auditoria': 'Limpeza da auditoria (retenção)',
 };
 
 /** "POST /api/usuarios" → "Criou usuário"; desconhecido → "Criou registro". */

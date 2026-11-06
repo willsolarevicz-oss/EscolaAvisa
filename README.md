@@ -4,7 +4,9 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 17 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** , **tela de Responsáveis** (com alerta de alunos sem responsável) e **segurança reforçada** (auditoria, rate limit geral, CSP, CodeQL, Dependabot — ver [SECURITY.md](SECURITY.md)) e **LGPD no produto** (Política de Privacidade e Termos públicos, aceite versionado, "Meus dados" com download em JSON, anonimização de usuários inativos).
+> **Status:** Fases 1 a 18 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** , **tela de Responsáveis** (com alerta de alunos sem responsável) e **segurança reforçada** (auditoria, rate limit geral, CSP, CodeQL, Dependabot — ver [SECURITY.md](SECURITY.md)) e **LGPD no produto** (Política de Privacidade e Termos públicos, aceite versionado, "Meus dados" com download em JSON, anonimização de usuários inativos) e **operação** (backup, retenção, monitoramento, plano de incidentes, licença e [relatório de conformidade com os 40 requisitos](docs/CONFORMIDADE.md)).
+>
+> **Licença:** software proprietário, todos os direitos reservados ([LICENSE](LICENSE)).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -17,6 +19,9 @@ Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 escola-avisa/
 ├── backend/     API REST (Express + PostgreSQL)
 ├── frontend/    SPA (React + Vite)
+├── docs/        OPERACAO (backup, retenção, monitoramento), INCIDENTES, CONFORMIDADE, licenças
+├── LICENSE      proprietária
+├── SECURITY.md
 ├── README.md
 └── PROGRESSO.md memória do desenvolvimento (leia antes de continuar o projeto)
 ```
@@ -95,6 +100,9 @@ npm run dev               # abre em http://localhost:5173
 | `BRASILAPI_URL`                   | não         | Base da BrasilAPI para os feriados do calendário (padrão `https://brasilapi.com.br/api`). Pública, sem chave |
 | `BRASILAPI_TIMEOUT_MS`            | não         | Tempo máximo da consulta de feriados (padrão `3000`). Se estourar, o calendário funciona sem os feriados |
 | `SEED_ADMIN_PASSWORD`             | em produção | Senha do admin criado pelo seed. Em desenvolvimento, se vazio, usa `Admin@123` |
+| `BACKUP_DIR`                      | não         | Pasta dos backups (padrão `backend/backups`, fora do git) |
+| `PG_BIN_DIR`                      | se o `pg_dump` não estiver no PATH | Pasta do `pg_dump`/`pg_restore` (ex.: `C:\Program Files\PostgreSQL\17\bin`) |
+| `AUDITORIA_RETENCAO_DIAS`         | não         | Guarda da trilha de auditoria antes da limpeza (padrão `365`; mínimo `183`, Marco Civil) |
 
 Gere um `JWT_SECRET` seguro com:
 
@@ -248,6 +256,11 @@ Erros seguem o formato `{ "success": false, "message": "..." }`.
 | `npm run migrate:create`  | Cria um novo arquivo de migration SQL                            |
 | `npm run seed`            | Cria o administrador inicial                                     |
 | `npm test`                | Testes automatizados (usa `TEST_DATABASE_URL`, recria o banco de teste) |
+| `npm run backup`          | Backup com `pg_dump` + verificação; `-- --keep=14` apaga os mais antigos ([docs/OPERACAO.md](docs/OPERACAO.md)) |
+| `npm run backup:verificar -- <arquivo>` | Confere se um backup é restaurável (não toca no banco) |
+| `npm run retencao`        | Simula a limpeza por prazo de retenção; `-- --executar` apaga (pede "sim") |
+| `npm run saude [-- URL]`  | Checa `/api/health` (código 1 se API ou banco estiverem fora): para agendar/monitorar |
+| `npm run licencas`        | Regenera `docs/LICENCAS-DEPENDENCIAS.md`; `-- --verificar` só confere (CI) |
 
 ### Frontend (`cd frontend`)
 
@@ -264,7 +277,7 @@ Erros seguem o formato `{ "success": false, "message": "..." }`.
 
 Todo PR e todo push na `main` rodam `.github/workflows/ci.yml` em máquinas limpas do GitHub:
 
-- **Backend:** `npm ci` + `npm audit` (alta/crítica) + `npm test` contra um PostgreSQL 17 descartável (service container). O `JWT_SECRET` é gerado a cada execução; nenhum segredo fica no repositório.
+- **Backend:** `npm ci` + `npm audit` (alta/crítica) + licenças das dependências (`npm run licencas -- --verificar`) + `npm test` contra um PostgreSQL 17 descartável (service container). O `JWT_SECRET` é gerado a cada execução; nenhum segredo fica no repositório.
 - **Frontend:** `npm ci` + `npm audit` (alta/crítica) + `npm run lint` + `npm test` + `npm run build`.
 - **CodeQL** (`codeql.yml`): análise estática de segurança em todo PR, push na `main` e toda segunda-feira.
 - **Dependabot** (`dependabot.yml`): PRs semanais de atualização de dependências.

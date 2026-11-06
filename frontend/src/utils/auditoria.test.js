@@ -13,6 +13,12 @@ describe('auditoria', () => {
     expect(descreverAcao('POST', '/api/algo-novo')).toBe('Criou registro');
   });
 
+  it('descreve as ações de LGPD e a limpeza por retenção (não viram "Criou usuário")', () => {
+    expect(descreverAcao('POST', '/api/usuarios/:id/anonimizar')).toBe('Anonimizou usuário');
+    expect(descreverAcao('POST', '/api/me/termos/aceite')).toBe('Aceitou a Política e os Termos');
+    expect(descreverAcao('DELETE', 'script:retencao/auditoria')).toBe('Limpeza da auditoria (retenção)');
+  });
+
   it('classifica o resultado pelo status', () => {
     expect(resultadoAcao(201)).toEqual({ label: 'OK', tone: 'success' });
     expect(resultadoAcao(403).label).toBe('Negado');
