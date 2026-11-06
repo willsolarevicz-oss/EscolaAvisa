@@ -67,6 +67,11 @@ jobs:
       - name: Auditoria de dependências
         run: npm audit --omit=dev --audit-level=high
 
+      # O projeto é proprietário: dependência com licença copyleft ou desconhecida precisa de análise.
+      # Lê os package-lock.json do backend e do frontend.
+      - name: Licenças das dependências
+        run: npm run licencas -- --verificar
+
       - name: Testes (migrations + API)
         run: npm test
 

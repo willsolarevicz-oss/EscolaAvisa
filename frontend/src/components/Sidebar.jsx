@@ -74,7 +74,7 @@ export function Sidebar({ id, open, onClose, tipoUsuario, contadores = {} }) {
           <p>
             <Link to="/privacidade">Privacidade</Link> · <Link to="/termos">Termos</Link>
           </p>
-          <p>Versão 1.7 · Fase 17</p>
+          <p>Versão 1.8 · Fase 18</p>
         </div>
       </aside>
     </>

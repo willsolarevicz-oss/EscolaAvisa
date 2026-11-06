@@ -26,6 +26,17 @@ async function start() {
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+  // Falha que escapou de todo tratamento: registra com o mesmo prefixo dos erros da API.
+  // Promise rejeitada só é registrada; exceção síncrona deixa o processo em estado incerto,
+  // então encerra (o gerenciador de processos/hospedagem reinicia a API).
+  process.on('unhandledRejection', (reason) => {
+    console.error(`[erro] ${new Date().toISOString()} promise rejeitada sem tratamento`, reason);
+  });
+  process.on('uncaughtException', (error) => {
+    console.error(`[erro] ${new Date().toISOString()} exceção não tratada; encerrando`, error);
+    process.exit(1);
+  });
 }
 
 start();

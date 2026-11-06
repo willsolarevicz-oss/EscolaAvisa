@@ -1,0 +1,26 @@
+EscolaAvis — Licença de Software Proprietário
+
+Copyright (c) 2026 [PREENCHER: nome completo ou razão social do titular]. Todos os direitos reservados.
+
+Este software, incluindo o código-fonte, a documentação e os demais arquivos deste repositório
+(o "Software"), é de propriedade exclusiva do titular acima e é protegido pela Lei nº 9.609/1998
+(Lei do Software) e pela Lei nº 9.610/1998 (Lei de Direitos Autorais).
+
+O fato de o código estar visível publicamente NÃO concede nenhuma licença. Sem autorização prévia e
+por escrito do titular, é proibido:
+
+  1. usar o Software, no todo ou em parte, para qualquer finalidade;
+  2. copiar, modificar, adaptar, traduzir ou criar obras derivadas;
+  3. distribuir, sublicenciar, vender, alugar ou disponibilizar o Software a terceiros, inclusive
+     como serviço acessado pela internet.
+
+É permitido apenas visualizar o código pela interface do repositório e criar cópias temporárias
+necessárias para essa visualização ou para contribuir com o próprio repositório, a convite do titular.
+
+Componentes de terceiros incluídos ou usados pelo Software continuam regidos pelas suas próprias
+licenças (lista em docs/LICENCAS-DEPENDENCIAS.md).
+
+O SOFTWARE É FORNECIDO "NO ESTADO EM QUE SE ENCONTRA", SEM GARANTIAS DE QUALQUER TIPO, NA EXTENSÃO
+PERMITIDA PELA LEI.
+
+Pedidos de licença: [PREENCHER: e-mail de contato do titular].

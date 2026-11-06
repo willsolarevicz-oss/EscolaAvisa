@@ -37,8 +37,11 @@ export function errorHandler(error, req, res, _next) {
   }
 
   // Erros inesperados são registrados por completo no servidor, nunca enviados ao cliente.
+  // Sem a query string: buscas podem ter nomes/e-mails (o log não deve guardar dado pessoal).
+  // O prefixo fixo "[erro]" é o que o monitoramento procura no log (docs/OPERACAO.md).
   if (status >= 500 && !env.isTest) {
-    console.error(`[erro] ${req.method} ${req.originalUrl}`, error);
+    const rota = req.originalUrl.split('?')[0];
+    console.error(`[erro] ${new Date().toISOString()} ${req.method} ${rota}`, error);
   }
 
   const body = { success: false, message };

@@ -59,6 +59,22 @@ export function parseTrustProxy(raw) {
   return value;
 }
 
+// O Marco Civil da Internet (art. 15) obriga a guardar registros de acesso por no mínimo 6 meses.
+export const AUDITORIA_RETENCAO_MINIMA_DIAS = 183;
+
+/** Dias de guarda da trilha de auditoria antes da limpeza (padrão: 1 ano, como diz a Política). */
+export function parseRetencaoAuditoria(raw) {
+  const value = raw?.trim();
+  if (!value) return 365;
+  const dias = Number(value);
+  if (!Number.isInteger(dias) || dias < AUDITORIA_RETENCAO_MINIMA_DIAS) {
+    throw new Error(
+      `AUDITORIA_RETENCAO_DIAS inválido: "${value}". Use um inteiro de pelo menos ${AUDITORIA_RETENCAO_MINIMA_DIAS} (Marco Civil: 6 meses)`,
+    );
+  }
+  return dias;
+}
+
 const nodeEnv = process.env.NODE_ENV || 'development';
 if (!VALID_ENVS.includes(nodeEnv)) {
   throw new Error(`NODE_ENV inválido: ${nodeEnv}. Use: ${VALID_ENVS.join(', ')}`);
@@ -93,5 +109,9 @@ export const env = Object.freeze({
   // Feriados nacionais (sem chave de API). Configurável para apontar para um espelho ou desligar nos testes.
   brasilApiUrl: (process.env.BRASILAPI_URL || 'https://brasilapi.com.br/api').trim().replace(/\/+$/, ''),
   brasilApiTimeoutMs: positiveInt('BRASILAPI_TIMEOUT_MS', 3000),
+  // Operação (Fase 18): onde ficam os backups, onde está o pg_dump e quanto tempo a auditoria é guardada.
+  backupDir: path.resolve(backendRoot, process.env.BACKUP_DIR?.trim() || 'backups'),
+  pgBinDir: process.env.PG_BIN_DIR?.trim() || '',
+  auditoriaRetencaoDias: parseRetencaoAuditoria(process.env.AUDITORIA_RETENCAO_DIAS),
   backendRoot,
 });

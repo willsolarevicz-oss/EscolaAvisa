@@ -19,6 +19,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Backups do banco (têm TODOS os dados pessoais: nunca versionar)
+backups/
+*.dump
+*.dump.parcial
+
 # Temporários e caches
 *.tmp
 *.temp

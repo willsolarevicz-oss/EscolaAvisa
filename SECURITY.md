@@ -53,4 +53,5 @@ Só a versão atual da branch `main` recebe correções de segurança.
 - Enviar também o cabeçalho `Content-Security-Policy` com `frame-ancestors 'none'` (impede o site de ser embutido em outro; não funciona via `<meta>`).
 - `TRUST_PROXY` configurado com o número de proxies (senão o rate limit trata todos como um IP só).
 - `JWT_SECRET` forte e exclusivo de produção; `.env` nunca no repositório.
-- Banco com acesso restrito à rede da API, conexão com TLS e backups (procedimento na Fase 18).
+- Banco com acesso restrito à rede da API, conexão com TLS e backups diários cifrados fora do servidor ([docs/OPERACAO.md](docs/OPERACAO.md)).
+- Monitor externo do `/api/health` e alerta para `[erro]` no log; em incidente, siga o [docs/INCIDENTES.md](docs/INCIDENTES.md).
