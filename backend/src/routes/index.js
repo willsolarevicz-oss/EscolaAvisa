@@ -11,6 +11,7 @@ import { meRoutes } from './meRoutes.js';
 import { notaRoutes } from './notaRoutes.js';
 import { ocorrenciaRoutes } from './ocorrenciaRoutes.js';
 import { relatorioRoutes } from './relatorioRoutes.js';
+import { responsavelRoutes } from './responsavelRoutes.js';
 import { turmaRoutes } from './turmaRoutes.js';
 import { usuarioRoutes } from './usuarioRoutes.js';
 
@@ -30,4 +31,5 @@ apiRoutes.use('/calendario', calendarioRoutes);
 apiRoutes.use('/eventos', eventoRoutes);
 apiRoutes.use('/conversas', conversaRoutes);
 apiRoutes.use('/relatorios', relatorioRoutes);
+apiRoutes.use('/responsaveis', responsavelRoutes);
 apiRoutes.use('/me', meRoutes);

@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, Circle, KeyRound, Lock, Mail, Save, User } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
@@ -161,8 +161,11 @@ export function UsuarioFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  // Vindo de "Novo responsável" (?tipo=RESPONSAVEL): o perfil já chega escolhido.
+  const [searchParams] = useSearchParams();
+  const tipoInicial = ROLE_OPTIONS.some((o) => o.value === searchParams.get('tipo')) ? searchParams.get('tipo') : '';
 
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, tipoUsuario: isEdit ? '' : tipoInicial }));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [saving, setSaving] = useState(false);

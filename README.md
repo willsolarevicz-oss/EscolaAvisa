@@ -4,7 +4,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 14 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) e **testes automatizados também no frontend**.
+> **Status:** Fases 1 a 15 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** e **tela de Responsáveis** (com alerta de alunos sem responsável).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -200,6 +200,8 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | POST   | `/api/me/avisos/:id/visualizar` | RESPONSAVEL | Registra a leitura                  |
 | GET    | `/api/me/turmas`   | PROFESSOR     | Turmas em que o professor leciona                 |
 | GET    | `/api/me/turmas/:turmaId/alunos` | PROFESSOR | Alunos da turma (e se a família pode receber comunicações) |
+| GET    | `/api/responsaveis` | ADMIN | Responsáveis com seus alunos (`busca`, `ativo`, `semAluno`) |
+| GET    | `/api/responsaveis/pendencias` | ADMIN | Alunos ativos sem responsável que receba comunicações |
 | GET/POST | `/api/ocorrencias` | ADMIN, PROFESSOR | Lista (com contagem de ciências) / registra (`alunoId`, `tipo`, `descricao`, `dataOcorrencia`) |
 | GET    | `/api/ocorrencias/:id` | ADMIN, PROFESSOR | Detalhe com quem deu ciência                 |
 | PATCH  | `/api/ocorrencias/:id/ativo` | ADMIN, PROFESSOR | Arquivar / reativar                    |

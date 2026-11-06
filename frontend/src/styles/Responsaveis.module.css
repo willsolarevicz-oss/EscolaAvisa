@@ -1,0 +1,50 @@
+/* Tela de Responsáveis: alunos de cada responsável e alerta de alunos sem responsável. */
+
+.alunos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.aluno {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.parentesco {
+  color: var(--color-text-muted);
+}
+
+.semAluno {
+  color: var(--color-text-subtle);
+  font-size: 0.875rem;
+}
+
+.pendencias {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+}
+
+.pendencias li {
+  margin-top: 2px;
+}
+
+.pendenciaNota {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
