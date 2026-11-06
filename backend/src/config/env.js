@@ -87,6 +87,9 @@ export const env = Object.freeze({
     .filter(Boolean),
   authRateLimitMax: positiveInt('AUTH_RATE_LIMIT_MAX', 10),
   authRateLimitWindowMinutes: positiveInt('AUTH_RATE_LIMIT_WINDOW_MINUTES', 15),
+  // Limite geral de requisições por IP em toda a /api (por janela de minutos).
+  apiRateLimitMax: positiveInt('API_RATE_LIMIT_MAX', 300),
+  apiRateLimitWindowMinutes: positiveInt('API_RATE_LIMIT_WINDOW_MINUTES', 1),
   // Feriados nacionais (sem chave de API). Configurável para apontar para um espelho ou desligar nos testes.
   brasilApiUrl: (process.env.BRASILAPI_URL || 'https://brasilapi.com.br/api').trim().replace(/\/+$/, ''),
   brasilApiTimeoutMs: positiveInt('BRASILAPI_TIMEOUT_MS', 3000),

@@ -4,7 +4,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 15 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** e **tela de Responsáveis** (com alerta de alunos sem responsável).
+> **Status:** Fases 1 a 16 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** , **tela de Responsáveis** (com alerta de alunos sem responsável) e **segurança reforçada** (auditoria, rate limit geral, CSP, CodeQL, Dependabot — ver [SECURITY.md](SECURITY.md)).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -89,6 +89,8 @@ npm run dev               # abre em http://localhost:5173
 | `FRONTEND_URL`                    | não         | Origem(ns) liberadas no CORS, separadas por vírgula (padrão `http://localhost:5173`) |
 | `AUTH_RATE_LIMIT_MAX`             | não         | Tentativas de login com falha por IP na janela (padrão `10`)                    |
 | `AUTH_RATE_LIMIT_WINDOW_MINUTES`  | não         | Janela do rate limit em minutos (padrão `15`)                                   |
+| `API_RATE_LIMIT_MAX`              | não         | Requisições por IP na janela, em toda a `/api` (padrão `300`)                   |
+| `API_RATE_LIMIT_WINDOW_MINUTES`   | não         | Janela do limite geral, em minutos (padrão `1`)                                 |
 | `TRUST_PROXY`                     | em produção atrás de proxy | Nº de proxies reversos na frente da API (padrão `false`). **Obrigatório configurar atrás de Nginx/load balancer**, senão todos os usuários dividem o mesmo limite de login. `true` é recusado por segurança |
 | `BRASILAPI_URL`                   | não         | Base da BrasilAPI para os feriados do calendário (padrão `https://brasilapi.com.br/api`). Pública, sem chave |
 | `BRASILAPI_TIMEOUT_MS`            | não         | Tempo máximo da consulta de feriados (padrão `3000`). Se estourar, o calendário funciona sem os feriados |
@@ -202,6 +204,7 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | GET    | `/api/me/turmas/:turmaId/alunos` | PROFESSOR | Alunos da turma (e se a família pode receber comunicações) |
 | GET    | `/api/responsaveis` | ADMIN | Responsáveis com seus alunos (`busca`, `ativo`, `semAluno`) |
 | GET    | `/api/responsaveis/pendencias` | ADMIN | Alunos ativos sem responsável que receba comunicações |
+| GET    | `/api/auditoria` | ADMIN | Trilha de quem alterou o quê (`busca`, `falhas=true`) |
 | GET/POST | `/api/ocorrencias` | ADMIN, PROFESSOR | Lista (com contagem de ciências) / registra (`alunoId`, `tipo`, `descricao`, `dataOcorrencia`) |
 | GET    | `/api/ocorrencias/:id` | ADMIN, PROFESSOR | Detalhe com quem deu ciência                 |
 | PATCH  | `/api/ocorrencias/:id/ativo` | ADMIN, PROFESSOR | Arquivar / reativar                    |
@@ -258,8 +261,10 @@ Erros seguem o formato `{ "success": false, "message": "..." }`.
 
 Todo PR e todo push na `main` rodam `.github/workflows/ci.yml` em máquinas limpas do GitHub:
 
-- **Backend:** `npm ci` + `npm test` contra um PostgreSQL 17 descartável (service container). O `JWT_SECRET` é gerado a cada execução; nenhum segredo fica no repositório.
-- **Frontend:** `npm ci` + `npm run lint` + `npm test` + `npm run build`.
+- **Backend:** `npm ci` + `npm audit` (alta/crítica) + `npm test` contra um PostgreSQL 17 descartável (service container). O `JWT_SECRET` é gerado a cada execução; nenhum segredo fica no repositório.
+- **Frontend:** `npm ci` + `npm audit` (alta/crítica) + `npm run lint` + `npm test` + `npm run build`.
+- **CodeQL** (`codeql.yml`): análise estática de segurança em todo PR, push na `main` e toda segunda-feira.
+- **Dependabot** (`dependabot.yml`): PRs semanais de atualização de dependências.
 
 O resultado aparece no PR (✅/❌) e no selo do topo deste README. Para reproduzir localmente, rode os mesmos comandos numa cópia sem `.env` e sem `node_modules`.
 

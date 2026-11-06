@@ -57,6 +57,7 @@ describe('Migrations', () => {
         'aluno_responsavel',
         'aluno_turma',
         'alunos',
+        'auditoria',
         'aviso_destinatarios',
         'avisos',
         'conversas',

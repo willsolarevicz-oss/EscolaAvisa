@@ -11,6 +11,7 @@ import {
   MessageSquare,
   NotebookPen,
   School,
+  ShieldCheck,
   UserCog,
 } from 'lucide-react';
 
@@ -61,7 +62,10 @@ export const NAVIGATION = [
   {
     title: 'Administração',
     roles: ['ADMIN'],
-    items: [{ label: 'Usuários', to: '/usuarios', icon: UserCog, available: true }],
+    items: [
+      { label: 'Usuários', to: '/usuarios', icon: UserCog, available: true },
+      { label: 'Auditoria', to: '/auditoria', icon: ShieldCheck, available: true },
+    ],
   },
 ];
 
