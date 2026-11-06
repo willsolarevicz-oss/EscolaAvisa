@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { ROLES } from '../config/roles.js';
 import { withTransaction } from '../database/transaction.js';
 import * as responsavelRepository from '../repositories/responsavelRepository.js';
@@ -23,6 +24,15 @@ async function findExistingOrFail(id) {
   // Id malformado é tratado como inexistente (404), sem chegar ao banco.
   const usuario = isUuid(id) ? await usuarioRepository.findById(id) : null;
   if (!usuario) throw AppError.notFound(NOT_FOUND_MESSAGE);
+  return usuario;
+}
+
+/** Usuário anonimizado não volta: sem dados reais, editar, reativar ou trocar senha não faz sentido. */
+async function findAlteravelOrFail(id) {
+  const usuario = await findExistingOrFail(id);
+  if (usuario.anonimizado_em) {
+    throw AppError.conflict('Este usuário foi anonimizado e não pode mais ser alterado.');
+  }
   return usuario;
 }
 
@@ -71,7 +81,7 @@ export async function createUsuario({ nome, email, senha, tipoUsuario, telefone,
 }
 
 export async function updateUsuario(id, { nome, email, telefone, cpf }) {
-  const atual = await findExistingOrFail(id);
+  const atual = await findAlteravelOrFail(id);
   const isResponsavel = atual.tipo_usuario === ROLES.RESPONSAVEL;
 
   if (!isResponsavel && (telefone !== null || cpf !== null)) {
@@ -100,7 +110,7 @@ export async function updateUsuario(id, { nome, email, telefone, cpf }) {
 }
 
 export async function setUsuarioAtivo(id, ativo, currentUser) {
-  await findExistingOrFail(id);
+  await findAlteravelOrFail(id);
 
   // Garante que sempre reste ao menos um admin ativo (quem desativa precisa estar ativo).
   if (!ativo && id === currentUser.id) {
@@ -113,7 +123,25 @@ export async function setUsuarioAtivo(id, ativo, currentUser) {
 }
 
 export async function resetSenha(id, senha) {
-  await findExistingOrFail(id);
+  await findAlteravelOrFail(id);
   const updated = await usuarioRepository.updatePasswordHash(id, await hashPassword(senha));
   if (!updated) throw AppError.notFound(NOT_FOUND_MESSAGE);
+}
+
+/**
+ * Anonimização a pedido do titular (LGPD art. 18). Irreversível. Regras:
+ * - não pode ser o próprio admin;
+ * - o usuário precisa estar DESATIVADO antes (dois passos: evita anonimizar alguém em uso por engano);
+ * - alunos não são anonimizados por aqui: o histórico escolar tem guarda obrigatória por lei.
+ */
+export async function anonimizarUsuario(id, currentUser) {
+  if (id === currentUser.id) throw AppError.badRequest('Você não pode anonimizar o seu próprio usuário.');
+  const usuario = await findAlteravelOrFail(id);
+  if (usuario.ativo) {
+    throw AppError.conflict('Desative o usuário antes de anonimizar.');
+  }
+  // Senha aleatória descartada: ninguém mais consegue entrar com esta conta.
+  const senhaHash = await hashPassword(randomBytes(32).toString('base64url'));
+  const anonimizado = await withTransaction((client) => usuarioRepository.anonimizar(id, senhaHash, client));
+  return toDetail(anonimizado);
 }

@@ -31,7 +31,10 @@ import { DisciplinaFormRoute } from '../pages/disciplinas/DisciplinaFormPage';
 import { DisciplinasListPage } from '../pages/disciplinas/DisciplinasListPage';
 import { TurmaFormRoute } from '../pages/turmas/TurmaFormPage';
 import { TurmasListPage } from '../pages/turmas/TurmasListPage';
+import { PrivacidadePage } from '../pages/legal/PrivacidadePage';
+import { TermosPage } from '../pages/legal/TermosPage';
 import { LoginPage } from '../pages/LoginPage';
+import { MeusDadosPage } from '../pages/meus-dados/MeusDadosPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { UsuarioFormRoute } from '../pages/usuarios/UsuarioFormPage';
 import { UsuariosListPage } from '../pages/usuarios/UsuariosListPage';
@@ -52,6 +55,7 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/calendario" element={<CalendarioPage />} />
+          <Route path="/meus-dados" element={<MeusDadosPage />} />
           <Route path="/mensagens" element={<MensagensPage />} />
           <Route path="/mensagens/nova" element={<NovaConversaPage />} />
           <Route path="/mensagens/:id" element={<ConversaRoute />} />
@@ -100,6 +104,14 @@ export function AppRoutes() {
             <Route path="/boletim" element={<BoletimPage />} />
           </Route>
         </Route>
+      </Route>
+
+      {/* Públicas (com ou sem login): precisam ser lidas ANTES do aceite e por quem nem tem conta. */}
+      <Route element={<SessionAwareLayout title="Privacidade" />}>
+        <Route path="/privacidade" element={<PrivacidadePage />} />
+      </Route>
+      <Route element={<SessionAwareLayout title="Termos de Uso" />}>
+        <Route path="/termos" element={<TermosPage />} />
       </Route>
 
       <Route element={<SessionAwareLayout title="Página não encontrada" />}>

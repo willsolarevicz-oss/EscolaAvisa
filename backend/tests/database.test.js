@@ -54,6 +54,7 @@ describe('Migrations', () => {
     assert.deepEqual(
       rows.map((r) => r.table_name),
       [
+        'aceites_termos',
         'aluno_responsavel',
         'aluno_turma',
         'alunos',

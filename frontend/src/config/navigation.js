@@ -13,6 +13,7 @@ import {
   School,
   ShieldCheck,
   UserCog,
+  UserRound,
 } from 'lucide-react';
 
 /**
@@ -58,6 +59,10 @@ export const NAVIGATION = [
       { label: 'Mensagens', to: '/mensagens', icon: MessageSquare, available: true, counter: 'mensagensNaoLidas' },
       { label: 'Calendário', to: '/calendario', icon: CalendarDays, available: true },
     ],
+  },
+  {
+    title: 'Conta',
+    items: [{ label: 'Meus dados', to: '/meus-dados', icon: UserRound, available: true }],
   },
   {
     title: 'Administração',

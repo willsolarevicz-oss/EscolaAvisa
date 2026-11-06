@@ -1,0 +1,21 @@
+/* "Meus dados": lista de rótulo/valor sem o recuo padrão do <dd>. */
+.dados {
+  margin: 0;
+}
+
+.dados dt {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.dados dd {
+  margin: 2px 0 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.resumo {
+  margin: 0;
+  padding-left: var(--space-5);
+  line-height: 1.8;
+}

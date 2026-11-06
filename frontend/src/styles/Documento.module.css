@@ -1,0 +1,96 @@
+/* Política de Privacidade e Termos de Uso: texto longo, legível, com sumário. */
+
+.page {
+  max-width: 820px;
+}
+
+.standalone {
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.header {
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-size: 1.6rem;
+}
+
+.meta {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.rascunho {
+  margin-bottom: var(--space-5);
+}
+
+.doc {
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  line-height: 1.7;
+}
+
+.doc h2 {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: 1.1rem;
+}
+
+.doc h2:first-child {
+  margin-top: 0;
+}
+
+.doc p,
+.doc ul {
+  margin: var(--space-2) 0;
+}
+
+.doc ul {
+  padding-left: var(--space-5);
+}
+
+.doc li {
+  margin: 4px 0;
+}
+
+.tabela {
+  width: 100%;
+  margin: var(--space-3) 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabela th,
+.tabela td {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela th {
+  background: var(--color-bg);
+  font-weight: 600;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .doc {
+    padding: var(--space-4);
+  }
+
+  .tabela {
+    display: block;
+    overflow-x: auto;
+  }
+}

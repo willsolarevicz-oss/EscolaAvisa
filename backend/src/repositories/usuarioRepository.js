@@ -2,7 +2,7 @@ import { pool } from '../database/pool.js';
 import { buscaSemAcento, containsPattern } from '../database/sqlHelpers.js';
 
 // Colunas públicas: senha_hash fica de fora para não vazar por engano.
-const PUBLIC_COLUMNS = 'id, nome, email, tipo_usuario, ativo, criado_em, atualizado_em';
+const PUBLIC_COLUMNS = 'id, nome, email, tipo_usuario, ativo, anonimizado_em, criado_em, atualizado_em';
 
 // As funções que gravam aceitam `db` (pool ou client de transação, ver withTransaction).
 
@@ -82,6 +82,27 @@ export async function setAtivo(id, ativo) {
     `UPDATE usuarios SET ativo = $2 WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
     [id, ativo],
   );
+  return rows[0] ?? null;
+}
+
+/**
+ * Anonimização (LGPD): troca nome, e-mail e senha por valores sem relação com a pessoa e apaga
+ * telefone/CPF. O id continua (avisos, ocorrências e mensagens apontam para ele).
+ * O e-mail usa o domínio reservado `.invalid` (nunca entrega) e o id, para continuar único.
+ */
+export async function anonimizar(id, senhaHashAleatoria, db = pool) {
+  const { rows } = await db.query(
+    `UPDATE usuarios
+     SET nome = 'Usuário anonimizado',
+         email = 'anonimizado+' || id::text || '@anonimizado.invalid',
+         senha_hash = $2,
+         ativo = FALSE,
+         anonimizado_em = NOW()
+     WHERE id = $1
+     RETURNING ${PUBLIC_COLUMNS}`,
+    [id, senhaHashAleatoria],
+  );
+  await db.query('UPDATE responsaveis SET telefone = NULL, cpf = NULL WHERE usuario_id = $1', [id]);
   return rows[0] ?? null;
 }
 
