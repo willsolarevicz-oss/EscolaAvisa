@@ -15,6 +15,7 @@ import {
 import { dependenciasDeProducao, licencaAceita } from '../scripts/inventario-licencas.js';
 import { verificarSaude } from '../scripts/verificar-saude.js';
 import { env, parseRetencaoAuditoria } from '../src/config/env.js';
+import { rotaParaLog } from '../src/middlewares/errorHandler.js';
 import { ROTA_LIMPEZA_AUDITORIA } from '../src/repositories/retencaoRepository.js';
 import { executarLimpeza, planejarLimpeza } from '../src/services/retencaoService.js';
 import { pool, resetDatabase } from './helpers/testDb.js';
@@ -184,6 +185,15 @@ describe('checagem de saúde (npm run saude)', () => {
     });
     assert.equal(foraDoAr.ok, false);
     assert.match(foraDoAr.detalhe, /falha de conexão/);
+  });
+});
+
+describe('log de erro', () => {
+  it('rota sem query string, sem quebra de linha nem caractere de controle e com tamanho limitado', () => {
+    assert.equal(rotaParaLog('/api/alunos?busca=Maria%20Silva'), '/api/alunos');
+    assert.equal(rotaParaLog('/api/x\r\n[erro] linha forjada'), '/api/x[erro] linha forjada');
+    assert.equal(rotaParaLog('/api/\u0000\u001b[31mx'), '/api/[31mx');
+    assert.equal(rotaParaLog(`/api/${'a'.repeat(500)}`).length, 200);
   });
 });
 

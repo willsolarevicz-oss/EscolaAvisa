@@ -12,6 +12,14 @@ const PG_ERRORS = {
   '22001': { status: 400, message: 'Valor maior que o tamanho permitido.' },
 };
 
+/**
+ * Rota segura para o log: sem query string (buscas podem ter nomes/e-mails), sem quebras de linha
+ * nem caracteres de controle (impede forjar uma linha falsa no log) e com tamanho limitado.
+ */
+export function rotaParaLog(url) {
+  return String(url).split('?')[0].replace(/[\r\n]/g, '').replace(/\p{Cc}/gu, '').slice(0, 200);
+}
+
 export function notFoundHandler(req, _res, next) {
   next(AppError.notFound(`Rota não encontrada: ${req.method} ${req.path}`));
 }
@@ -40,8 +48,8 @@ export function errorHandler(error, req, res, _next) {
   // Sem a query string: buscas podem ter nomes/e-mails (o log não deve guardar dado pessoal).
   // O prefixo fixo "[erro]" é o que o monitoramento procura no log (docs/OPERACAO.md).
   if (status >= 500 && !env.isTest) {
-    const rota = req.originalUrl.split('?')[0];
-    console.error(`[erro] ${new Date().toISOString()} ${req.method} ${rota}`, error);
+    // Formato fixo com %s: a rota vem do cliente e não pode virar formatação nem quebrar linha no log.
+    console.error('[erro] %s %s %s', new Date().toISOString(), req.method, rotaParaLog(req.originalUrl), error);
   }
 
   const body = { success: false, message };
