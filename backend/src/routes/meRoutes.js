@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { ROLES } from '../config/roles.js';
+import * as authController from '../controllers/authController.js';
 import * as avisoController from '../controllers/avisoController.js';
 import * as contadorController from '../controllers/contadorController.js';
+import * as meusDadosController from '../controllers/meusDadosController.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { authorize } from '../middlewares/authorize.js';
-import { validateQuery } from '../middlewares/validate.js';
+import { validateBody, validateQuery } from '../middlewares/validate.js';
+import { aceiteTermosSchema } from '../validators/lgpdValidators.js';
 import * as notaController from '../controllers/notaController.js';
 import * as ocorrenciaController from '../controllers/ocorrenciaController.js';
 import * as turmaController from '../controllers/turmaController.js';
@@ -18,6 +21,10 @@ meRoutes.use(authenticate);
 
 // Todos os perfis: números da sidebar (cada perfil recebe só os que fazem sentido para ele).
 meRoutes.get('/contadores', contadorController.contadores);
+
+// LGPD (todos os perfis): aceite da Política/Termos e cópia dos próprios dados.
+meRoutes.post('/termos/aceite', validateBody(aceiteTermosSchema), authController.aceitarTermos);
+meRoutes.get('/dados', meusDadosController.exportar);
 
 const responsavel = authorize(ROLES.RESPONSAVEL);
 meRoutes.get('/avisos', responsavel, validateQuery(meusAvisosQuerySchema), avisoController.listMeus);

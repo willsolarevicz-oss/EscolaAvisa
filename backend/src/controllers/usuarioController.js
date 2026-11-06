@@ -26,6 +26,11 @@ export async function setAtivo(req, res) {
   res.status(200).json({ success: true, message, data: { user } });
 }
 
+export async function anonimizar(req, res) {
+  const user = await usuarioService.anonimizarUsuario(req.params.id, req.user);
+  res.status(200).json({ success: true, message: 'Dados pessoais do usuário anonimizados.', data: { user } });
+}
+
 export async function resetSenha(req, res) {
   await usuarioService.resetSenha(req.params.id, req.body.senha);
   res.status(200).json({ success: true, message: 'Senha redefinida com sucesso.' });

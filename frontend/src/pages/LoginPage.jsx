@@ -1,10 +1,11 @@
 import { Bell, Eye, EyeOff, Lock, LogIn, Mail, MessagesSquare, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { Alert } from '../components/Alert';
 import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
 import { TextField } from '../components/TextField';
+import { INSTITUICAO } from '../config/instituicao';
 import { useAuth } from '../hooks/useAuth';
 import { getApiErrorMessage } from '../services/api';
 import styles from './LoginPage.module.css';
@@ -151,6 +152,10 @@ export function LoginPage() {
           </form>
 
           <p className={styles.help}>Problemas para acessar? Procure a secretaria da escola.</p>
+          {/* Identificação do fornecedor e documentos, acessíveis antes do login. */}
+          <p className={styles.help}>
+            {INSTITUICAO.nome} · <Link to="/privacidade">Privacidade</Link> · <Link to="/termos">Termos de Uso</Link>
+          </p>
         </div>
       </main>
     </div>

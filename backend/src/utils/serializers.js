@@ -6,6 +6,7 @@ export function toUsuarioResponse(usuario) {
     email: usuario.email,
     tipoUsuario: usuario.tipo_usuario,
     ativo: usuario.ativo,
+    anonimizadoEm: usuario.anonimizado_em ?? null,
     criadoEm: usuario.criado_em,
     atualizadoEm: usuario.atualizado_em,
   };

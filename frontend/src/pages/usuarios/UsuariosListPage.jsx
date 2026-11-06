@@ -138,7 +138,11 @@ export function UsuariosListPage() {
                       <Badge tone={ROLE_TONES[usuario.tipoUsuario]}>{roleLabel(usuario.tipoUsuario)}</Badge>
                     </td>
                     <td data-label="Situação">
-                      <Badge tone={usuario.ativo ? 'success' : 'danger'}>{usuario.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                      {usuario.anonimizadoEm ? (
+                        <Badge tone="neutral">Anonimizado</Badge>
+                      ) : (
+                        <Badge tone={usuario.ativo ? 'success' : 'danger'}>{usuario.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                      )}
                     </td>
                     <td data-label="Criado em" className={`${styles.muted} ${styles.optionalColumn}`}>
                       {formatDate(usuario.criadoEm, { dateStyle: 'medium' })}
@@ -150,6 +154,7 @@ export function UsuariosListPage() {
                         editTo={`/usuarios/${usuario.id}/editar`}
                         toggle={toggle}
                         canDeactivate={!isSelf}
+                        canReactivate={!usuario.anonimizadoEm}
                       />
                     </td>
                   </tr>

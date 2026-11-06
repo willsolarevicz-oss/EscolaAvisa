@@ -1,7 +1,7 @@
 # PROGRESSO — EscolaAvis
 
 > Memória persistente do desenvolvimento. **Leia inteiro antes de mexer no projeto** e atualize ao final de cada sessão.
-> Última atualização: 2026-11-06 — fim da Fase 16 (segurança técnica; 1ª de 3 fases de conformidade com os "40 requisitos"). Branch: `feat/fase-16-seguranca`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–15 já na `main` via PRs #1 a #9; cada fase nova entra por PR e passa pela CI).
+> Última atualização: 2026-11-06 — fim da Fase 17 (LGPD no produto; 2ª de 3 fases de conformidade com os "40 requisitos"). Branch: `feat/fase-17-lgpd`. Repositório: https://github.com/willsolarevicz-oss/EscolaAvisa (fases 1–16 já na `main` via PRs #1 a #10; cada fase nova entra por PR e passa pela CI).
 
 ---
 
@@ -32,7 +32,8 @@ escola-avisa/
 │   ├── seeds/               adminSeed.js (idempotente) + run.js (entrada do npm run seed)
 │   ├── tests/               node:test + supertest; helpers/testDb.js recria o banco *_test
 │   └── src/
-│       ├── config/          env.js (lê e VALIDA o .env), roles.js (perfis), turnos.js
+│       ├── config/          env.js (lê e VALIDA o .env), roles.js (perfis), turnos.js,
+│       │                    termos.js (TERMOS_VERSAO: versão vigente da Política/Termos)
 │       ├── database/        pool.js (pg Pool + query parametrizada), migrate.js (CLI/programático),
 │       │                    transaction.js (withTransaction: BEGIN/COMMIT/ROLLBACK),
 │       │                    sqlHelpers.js (containsPattern: busca ILIKE escapada),
@@ -50,7 +51,8 @@ escola-avisa/
 │       └── server.js        checa o banco, faz listen e shutdown gracioso
 └── frontend/
     └── src/
-        ├── config/          navigation.js (itens da sidebar e quais estão disponíveis)
+        ├── config/          navigation.js (itens da sidebar e quais estão disponíveis),
+        │                    instituicao.js (dados da escola/fornecedor — campos [PREENCHER] — e DOCUMENTOS_VERSAO)
         ├── contexts/        authContext.js (contexto + status) e AuthProvider.jsx (lógica da sessão)
         ├── hooks/           useAuth, useApiHealth, useDebouncedValue, usePaginatedList (listagem com
         │                    filtros na URL), useFlashMessage (mensagem entre páginas), useAtivoToggle
@@ -62,7 +64,7 @@ escola-avisa/
         ├── services/        api.js (Axios central + interceptors), authService, healthService, usuarioService,
         │                    alunoService, disciplinaService, turmaService, avisoService, ocorrenciaService,
         │                    notaService, eventoService, conversaService, contadorService, relatorioService,
-        │                    responsavelService
+        │                    responsavelService, auditoriaService, lgpdService (aceite e "Meus dados")
         ├── routes/          AppRoutes, ProtectedRoute, PublicOnlyRoute, RoleRoute (perfis; só UX)
         ├── layouts/         DashboardLayout (sidebar + header + <Outlet/>),
         │                    SessionAwareLayout (logado → DashboardLayout; deslogado → página avulsa)
@@ -84,7 +86,9 @@ escola-avisa/
         │                    relatorios/ (abas avisos/ocorrências/notas; StatTile, Secao e BarList em RelatorioPartes),
         │                    minhas-turmas/ (professor: turmas e alunos, com atalhos para notas, aviso, ocorrência e mensagem),
         │                    responsaveis/ (ADMIN: responsáveis com seus alunos + alerta de alunos sem responsável),
-        │                    auditoria/ (ADMIN: trilha de quem alterou o quê)
+        │                    auditoria/ (ADMIN: trilha de quem alterou o quê),
+        │                    legal/ (Privacidade e Termos públicos, DocumentoLayout, AceiteTermosPage),
+        │                    meus-dados/ (ver e baixar em JSON os próprios dados)
         ├── utils/           tokenStorage (token + expiresAt), formatters (inclui turnos/anos), apiErrors (toFieldErrors),
         │                    notas (parseNota, formatNota, calcularMedia — mesma regra do backend),
         │                    calendario (grade do mês, navegação entre meses, tipos de evento),
@@ -98,6 +102,7 @@ escola-avisa/
         └── styles/          global.css (design tokens), ListPage.module.css e FormPage.module.css
                              (estilos compartilhados por todas as listagens e formulários),
                              RelationSection.module.css (seções de vínculos: responsáveis, alunos, professores),
+                             Documento/Aceite/MeusDados.module.css (páginas legais, aceite e "Meus dados"),
                              Comunicado.module.css (telas de avisos e ocorrências: conteúdo, leitores, feed),
                              Notas.module.css (grade de lançamento e boletim),
                              Calendario.module.css (grade mensal; no celular vira marcadores + lista),
@@ -123,7 +128,7 @@ Todas as PKs são `UUID` (`gen_random_uuid()`), todas as tabelas de entidade tê
 
 | Tabela              | Campos principais                                                                                   | Regras de integridade |
 | ------------------- | --------------------------------------------------------------------------------------------------- | --------------------- |
-| `usuarios`          | nome, email, **senha_hash**, tipo_usuario, ativo                                                     | e-mail único e obrigatoriamente minúsculo/sem espaços; `tipo_usuario` ∈ {ADMIN, PROFESSOR, RESPONSAVEL} (CHECK) |
+| `usuarios`          | nome, email, **senha_hash**, tipo_usuario, ativo, anonimizado_em                                     | e-mail único e obrigatoriamente minúsculo/sem espaços; `tipo_usuario` ∈ {ADMIN, PROFESSOR, RESPONSAVEL} (CHECK) |
 | `alunos`            | nome, data_nascimento, matricula, ativo                                                              | matrícula única; nome/matrícula não vazios |
 | `responsaveis`      | usuario_id, telefone, cpf (opcional)                                                                 | 1:1 com `usuarios` (UNIQUE usuario_id, FK RESTRICT); CPF único quando informado, 11 dígitos; telefone 10–13 dígitos |
 | `aluno_responsavel` | aluno_id, responsavel_id, parentesco, responsavel_principal, autorizado_receber_comunicacoes         | N:N; par único; **no máximo 1 responsável principal por aluno** (índice único parcial); CASCADE nos dois lados |
@@ -137,6 +142,7 @@ Todas as PKs são `UUID` (`gen_random_uuid()`), todas as tabelas de entidade tê
 | `ocorrencia_ciencias` | ocorrencia_id, usuario_id, ciente_em                                                               | PK (ocorrencia_id, usuario_id); snapshot dos responsáveis no registro; CASCADE à ocorrência |
 | `eventos`           | titulo, descricao, tipo, data_inicio, data_fim, turma_id (NULL = escola toda), autor_id              | CHECK tipo (PROVA/REUNIAO/RECESSO/EVENTO/OUTRO) e data_fim >= data_inicio; FKs RESTRICT; excluído quando cancelado (sem leitura/ciência a preservar) |
 | `auditoria`         | usuario_id (NULL = não identificado), metodo, rota (normalizada, :id), recurso_id, status, ip, criado_em | Só métodos que alteram dados; nunca o corpo da requisição |
+| `aceites_termos`    | usuario_id, versao, aceito_em, ip                                                                    | UNIQUE (usuario_id, versao): aceitar de novo a mesma versão não duplica; FK RESTRICT (prova do aceite não some) |
 | `conversas`         | aluno_id, responsavel_usuario_id, canal (SECRETARIA/PROFESSOR), professor_usuario_id, assunto, iniciada_por, ultima_mensagem_em, lida_responsavel_em, lida_escola_em | CHECK canal; professor existe ⇔ canal PROFESSOR; FKs RESTRICT; leitura por LADO (não por pessoa) |
 | `mensagens`         | conversa_id, autor_id, conteudo (≤ 5000), enviada_em                                                   | Não são editadas nem apagadas; FK conversa CASCADE, autor RESTRICT |
 | `notas`             | aluno_id, turma_id, disciplina_id, bimestre (1–4), valor NUMERIC(3,1), lancado_por                    | CHECK valor 0–10 e bimestre 1–4; UNIQUE (aluno, turma, disciplina, bimestre); FKs RESTRICT; média não é gravada |
@@ -154,7 +160,7 @@ Relacionamentos:
 - Feriados nacionais **não** ficam no banco: vêm da BrasilAPI na hora de montar o calendário
 - `alunos 1 — N conversas` (toda conversa é sobre um aluno); `conversas 1 — N mensagens`; responsável e professor são `usuarios`
 
-Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`, `1793059207000_criar-eventos`, `1793059208000_criar-conversas`, `1793059209000_busca-sem-acento` (extensão `unaccent`), `1793059210000_criar-auditoria`.
+Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_criar-usuarios`, `1793059202000_criar-alunos-e-responsaveis`, `1793059203000_criar-turmas-e-disciplinas`, `1793059204000_criar-avisos`, `1793059205000_criar-ocorrencias`, `1793059206000_criar-notas`, `1793059207000_criar-eventos`, `1793059208000_criar-conversas`, `1793059209000_busca-sem-acento` (extensão `unaccent`), `1793059210000_criar-auditoria`, `1793059211000_lgpd-aceites-e-anonimizacao` (`aceites_termos` + `usuarios.anonimizado_em`).
 
 ## Implementado
 
@@ -206,6 +212,12 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
   - **Filtros mantidos**: cada listagem lembra a própria URL (busca, filtros, página) na `sessionStorage` da aba; formulários e detalhes voltam para ela ao salvar, cancelar ou pela trilha
   - **Achados da revisão**: `migrate:down` pede confirmação ("sim" no terminal; `--yes` em script/CI) e mostra o banco afetado; `tokenStorage` registra (uma vez) quando o armazenamento falha; estado "deslogado" do `AuthProvider` em uma função só; 404 usa o componente `Button`
   - **Minhas turmas** (professor): cartões das turmas com atalhos para lançar notas por disciplina e enviar aviso; tela da turma com os alunos, quantos responsáveis podem receber comunicações e atalhos para registrar ocorrência e mandar mensagem (formulários já abrem com aluno/turma escolhidos)
+- [x] **LGPD no produto (Fase 17)** — dados da escola como campos `[PREENCHER: …]` (escolha do usuário) em `frontend/src/config/instituicao.js`:
+  - **Política de Privacidade** e **Termos de Uso** públicos (`/privacidade`, `/termos`), abertos com ou sem login, marcados como rascunho para revisão jurídica: controladora e encarregado, dados de crianças (art. 14), dados sensíveis (ocorrências de saúde), finalidades e bases legais sugeridas, compartilhamento (BrasilAPI só recebe o ano), armazenamento local sem cookies, **tabela de retenção**, direitos do titular, segurança, incidentes, transparência sobre IA
+  - **Aceite versionado**: login e `/me` trazem `termos: { versao, aceito }`; sem aceite da versão vigente o sistema mostra a tela de aceite ("li e concordo") no lugar das páginas; o aceite grava versão, data e IP e é pedido de novo quando a versão muda
+  - **Meus dados** (todos os perfis, LGPD art. 18): resumo do que o sistema guarda e download em JSON (conta, responsável, alunos, avisos com leitura, ocorrências com ciência, mensagens, aceites, ações da auditoria). Nunca inclui a senha
+  - **Anonimização** (ADMIN, na tela do usuário inativo): troca nome/e-mail, apaga telefone/CPF, invalida a senha e mantém o histórico escolar; usuário anonimizado não pode mais ser editado, reativado nem ter a senha redefinida
+  - Rodapé da sidebar e do login com a instituição e os links legais
 - [x] **Segurança técnica (Fase 16)** — auditoria dos "40 requisitos" (2026-11-06: 9 atendidos, 10 parciais, 15 não atendidos, 6 não se aplicam); esta fase cobre a parte de código:
   - **Rate limit geral** da API por IP (`API_RATE_LIMIT_MAX`/`_WINDOW_MINUTES`, padrão 300/min), além do do login
   - **Trilha de auditoria**: middleware grava, após a resposta, toda requisição que altera dados (quem, rota normalizada, recurso, status, IP), inclusive login com falha e ações negadas; nunca o corpo. Tela "Auditoria" (ADMIN) com busca por quem fez e filtro "só falhas", ações descritas em português
@@ -213,8 +225,8 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
   - **CI**: `npm audit` (barra alta/crítica) nos dois jobs; **CodeQL** (security-extended) em PR, push e semanal; **Dependabot** semanal
   - **SECURITY.md**: reporte privado, proteções, processo de vulnerabilidades, riscos aceitos, checklist de produção
 - [x] **Tela de Responsáveis (Fase 15)** — só consulta + atalhos, decisão do usuário: lista os responsáveis (usuários com perfil Responsável) com telefone e os alunos de cada um (parentesco, "Principal", "Não recebe comunicações", aluno inativo); busca sem acento, filtros de situação e "sem aluno vinculado"; alerta com os alunos ATIVOS sem responsável que receba comunicações (sem vínculo, vínculo não autorizado ou responsável inativo), com link para o aluno. Editar leva à tela do usuário; "Novo responsável" abre o cadastro de usuário já com o perfil Responsável
-- [x] **Testes do frontend (Fase 14)**: Vitest + jsdom + Testing Library, API simulada com `vi.mock` (não precisa de backend). **23 testes**: utilitários (notas, calendário, relatórios, filtros lembrados, aluno da navegação), sidebar (contadores, "99+", itens por perfil), login (validação, e-mail sem espaços, erro da API), grade de notas (nota inválida não é enviada, vírgula, média ao vivo, envia só o que mudou, turma desativada só consulta), relatório de notas (corte padrão, corte inválido mantém o relatório), responsáveis (alunos e selos do vínculo, filtro "sem aluno", alerta só com pendência), auditoria (descrição das ações e do resultado). `npm test` no frontend; roda na CI
-- [x] **Testes automatizados do backend: 211 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar), relatórios (9 testes: números conferidos à mão nos três relatórios, escopo do professor, período/corte inválidos, taxa null sem base), dívidas técnicas (6 testes: busca sem acento em várias telas, % continua literal, Minhas turmas com permissões, `migrate:down` recusado sem confirmação rodando o script de verdade), responsáveis (5 testes: alunos de cada responsável, busca/filtros, só ADMIN, quem conta como pendência e quando deixa de contar), auditoria (7 testes: rota normalizada, quem fez, senha nunca gravada, login com e sem sucesso, GET não registrado, ação negada registrada, consulta e filtros, só ADMIN), rate limit geral (2 testes)
+- [x] **Testes do frontend (Fase 14)**: Vitest + jsdom + Testing Library, API simulada com `vi.mock` (não precisa de backend). **27 testes**: aceite dos termos (bloqueia o sistema, só aceita com "li e concordo", libera com aceite em dia), meus dados (resumo e download do JSON), utilitários (notas, calendário, relatórios, filtros lembrados, aluno da navegação), sidebar (contadores, "99+", itens por perfil), login (validação, e-mail sem espaços, erro da API), grade de notas (nota inválida não é enviada, vírgula, média ao vivo, envia só o que mudou, turma desativada só consulta), relatório de notas (corte padrão, corte inválido mantém o relatório), responsáveis (alunos e selos do vínculo, filtro "sem aluno", alerta só com pendência), auditoria (descrição das ações e do resultado). `npm test` no frontend; roda na CI
+- [x] **Testes automatizados do backend: 219 passando** (`npm test` no backend): health, login, /me, tokens inválidos/expirados/forjados, RBAC, rate limit (incluindo X-Forwarded-For forjado e TRUST_PROXY), validação do .env, constraints do banco, gestão de usuários (25 testes, incluindo rollback da transação), alunos e vínculos (15 testes), disciplinas (5 testes), turmas/matrícula/professores (17 testes), avisos (15 testes), ocorrências (11 testes), notas e boletim (11 testes), eventos e calendário (13 testes, com a BrasilAPI simulada: sucesso, cache, erro HTTP e falha de rede), conversas e mensagens (12 testes: quem fala com quem, privacidade, leitura por lado, ordenação), contadores e próximos eventos (7 testes: contadores sobem e baixam ao ler, visibilidade e ordem dos próximos eventos, limite, próximo feriado inclusive na virada do ano, BrasilAPI fora do ar), relatórios (9 testes: números conferidos à mão nos três relatórios, escopo do professor, período/corte inválidos, taxa null sem base), dívidas técnicas (6 testes: busca sem acento em várias telas, % continua literal, Minhas turmas com permissões, `migrate:down` recusado sem confirmação rodando o script de verdade), responsáveis (5 testes: alunos de cada responsável, busca/filtros, só ADMIN, quem conta como pendência e quando deixa de contar), auditoria (7 testes: rota normalizada, quem fez, senha nunca gravada, login com e sem sucesso, GET não registrado, ação negada registrada, consulta e filtros, só ADMIN), rate limit geral (2 testes), LGPD (8 testes: aceite no login e no /me, idempotente com IP, versão errada 409; exportação sem senha e só do próprio usuário; anonimização só de inativo, não de si mesmo, só ADMIN, campos apagados e histórico mantido, login antigo falha, anonimizado não é alterável)
 - [x] `JWT_EXPIRES_IN` e `TRUST_PROXY` validados na inicialização (a API não sobe com valor inválido)
 - [x] Teste manual no navegador: login, erro de senha, persistência após reload, logout, redirecionamento, token inválido/expirado, desktop/tablet/celular; gestão de usuários completa (criar, conflito de CPF, busca, edição, redefinir senha, desativar/cancelar com Esc, acesso negado para professor); alunos completos (cadastro, vínculos, troca de principal, edição e remoção de vínculo, card do dashboard, regressão da lista de usuários); turmas/disciplinas completos (cadastro, nome repetido, matrícula, transferência confirmada, atribuição de professor, ano travado, turma atual no aluno, desativar/reativar usuário via RowActions, celular); avisos com os 3 perfis (publicação pelo admin e pela professora, leitura pela responsável, relatório "1 de 1 leram", arquivamento, regressão dos 4 formulários, celular); ocorrências com os 3 perfis (registro pela tela do aluno, professora restrita aos alunos dela, ciência explícita, controle "1 de 1 deu ciência", celular); notas (lançamento pela professora com valor inválido bloqueado, vírgula e ponto, persistência após recarregar, remoção de nota, boletim da responsável, celular com rolagem da grade); calendário (feriados reais da BrasilAPI, professora criando prova só para a turma dela, validação de datas, edição que leva ao mês do evento, exclusão com confirmação, navegação entre meses, responsável sem botões de edição e barrada no formulário, celular sem rolagem lateral); mensagens (responsável escolhendo entre secretaria e só a professora da filha, quebra de linha preservada, professora vendo "1 nova" e respondendo com Ctrl+Enter, "Lida" para a responsável no celular, admin sem acesso à conversa da professora, secretaria iniciando conversa com validação de responsável); dashboard e contadores (responsável com 1/1/1 na sidebar e nos cards, contador some ao abrir a conversa e na hora do "Estou ciente" sem trocar de página, próximo feriado real da BrasilAPI, ponto no menu do celular, admin com 5 cards em uma linha a 1366 px); relatórios (números das três abas conferidos com os dados criados, corte 9 lista os dois alunos, corte inválido mantém o relatório, professora vendo só o aviso dela, celular sem rolagem lateral); dívidas técnicas ("responsavel" acha "Carla Responsável", salvar usuário volta com busca e filtro, 404 com `Button`, Minhas turmas da professora com os três atalhos pré-preenchidos, celular)
 - [x] ESLint sem avisos e build de produção do frontend OK
@@ -225,7 +237,9 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 | ------ | ----------------- | --------------------- | --------- |
 | GET    | `/api/health`     | público               | `{ api, database, timestamp }`; 503 se o banco estiver fora |
 | POST   | `/api/auth/login` | público, rate limited | body `{ email, senha }` → `{ token, tokenType, expiresIn, user }`. 400 validação, 401 credenciais, 403 usuário inativo, 429 excesso de tentativas |
-| GET    | `/api/auth/me`    | autenticado           | `{ user }` do usuário logado |
+| GET    | `/api/auth/me`    | autenticado           | `{ user }` do usuário logado (com `termos: { versao, aceito }`, também no login) |
+| POST   | `/api/me/termos/aceite` | autenticado | `{ versao }` → `{ versao, aceito: true }`. 409 se não for a versão vigente; idempotente |
+| GET    | `/api/me/dados` | autenticado | Cópia dos próprios dados (LGPD art. 18), `Cache-Control: no-store` |
 | GET    | `/api/admin/ping` | ADMIN                 | Confirma acesso de admin (401 sem token, 403 outros perfis) |
 | GET    | `/api/usuarios`   | ADMIN | Query `page`, `pageSize` (máx. 100), `busca`, `tipo`, `ativo` → `{ items, pagination: { page, pageSize, total, totalPages } }` |
 | POST   | `/api/usuarios`   | ADMIN | `{ nome, email, senha, tipoUsuario, telefone?, cpf? }` → 201 `{ user }`. Telefone/CPF só para RESPONSAVEL. 409 e-mail/CPF repetido |
@@ -233,6 +247,7 @@ Migrations (em ordem): `1793059200000_funcao-atualizado-em`, `1793059201000_cria
 | PUT    | `/api/usuarios/:id` | ADMIN | `{ nome, email, telefone?, cpf? }`. Perfil é imutável (enviar `tipoUsuario` → 400) |
 | PATCH  | `/api/usuarios/:id/ativo` | ADMIN | `{ ativo: boolean }`. Admin não pode desativar a si mesmo (400) |
 | PATCH  | `/api/usuarios/:id/senha` | ADMIN | `{ senha }` (política: 8+ caracteres, letra e número) |
+| POST   | `/api/usuarios/:id/anonimizar` | ADMIN | Anonimiza usuário INATIVO (409 se ativo ou já anonimizado; 400 se for o próprio) |
 | GET    | `/api/alunos` | ADMIN | Query `page`, `pageSize`, `busca` (nome ou matrícula), `ativo` → `{ items, pagination }`; cada item tem `totalResponsaveis` |
 | POST   | `/api/alunos` | ADMIN | `{ nome, dataNascimento: "AAAA-MM-DD", matricula }` → 201 `{ aluno }`. 409 matrícula repetida |
 | GET    | `/api/alunos/:id` | ADMIN | `{ aluno }` com `responsaveis` (vínculos) incluídos |
@@ -319,7 +334,9 @@ Módulos (cada um precisa de backend + frontend + testes):
 
 Melhorias técnicas conhecidas (não bloqueiam):
 - [ ] Logout é só no cliente (JWT stateless). Se precisar invalidar tokens no servidor: tabela de tokens revogados ou campo `token_version` em `usuarios`.
-- [ ] Trilha de auditoria cresce sem limite: definir retenção (ex.: 1 ano) junto com a política de retenção da Fase 17.
+- [ ] Retenção definida na Política (auditoria: 1 ano), mas a limpeza automática ainda não existe: script com dry-run na Fase 18.
+- [ ] **Preencher os campos `[PREENCHER: …]`** de `frontend/src/config/instituicao.js` (nome, CNPJ, endereço, contato, encarregado, foro…) e **revisar Política e Termos com assessoria jurídica** antes de usar com famílias reais. Ao mudar o texto, trocar a versão em `backend/src/config/termos.js` E em `instituicao.js`.
+- [ ] Pedido de correção/exclusão é por contato com a secretaria/encarregado (sem formulário no sistema).
 - [ ] 2FA para administradores (requisito 38, parcial): avaliar depois da Fase 18.
 - [ ] Rate limit em memória: com mais de uma instância do backend, trocar o store (ex.: Redis). (Atrás de proxy reverso basta configurar `TRUST_PROXY`.)
 - [ ] Alterar senha / "esqueci minha senha"
@@ -343,12 +360,7 @@ Melhorias técnicas conhecidas (não bloqueiam):
 
 Continuar o plano dos **40 requisitos** (aprovado pelo usuário em 2026-11-06):
 
-**Fase 17 — LGPD no produto** (requisitos 11, 12, 14, 15, 16, 17, 18, 19, 21, 26, 30):
-1. Páginas públicas de Privacidade e Termos (rascunho marcado "revisar com jurídico"; dados de crianças — art. 14 da LGPD).
-2. Aceite registrado (versão + data) no primeiro login e quando o texto mudar.
-3. "Meus dados": ver e baixar (JSON) os próprios dados; anonimização a pedido (ADMIN).
-4. Política de retenção (inclui a trilha de auditoria), aviso sobre armazenamento local (sem cookies), identificação do fornecedor, nota de transparência sobre IA.
-**Antes, pedir ao usuário:** nome e CNPJ da escola (controladora), contato, encarregado de dados (DPO).
+Fases 16 (segurança técnica) e 17 (LGPD no produto) concluídas.
 
 **Fase 18 — Operação** (requisitos 20, 29, 31, 33, 34, 35, 40): backup (`pg_dump`) + rotina, plano de resposta e notificação de incidentes (ANPD), monitoramento, LICENSE + inventário de licenças (pedir a licença ao usuário), relatório de conformidade com os 40 itens (os 6 "não se aplica" justificados: 22–25, 27, 28).
 
@@ -458,3 +470,8 @@ Registradas para que ninguém mude a arquitetura sem motivo. Para mudar, documen
 100. **Auditoria antes do rate limit** no pipeline: tentativas barradas (429) também ficam registradas, porque são sinal de ataque.
 101. **CSP só no build** (via plugin do Vite): no dev o React injeta script inline de recarga. `frame-ancestors` exige cabeçalho na hospedagem (anotado no SECURITY.md).
 102. **`npm audit` na CI barra só alta/crítica de produção**: as moderadas conhecidas estão justificadas no SECURITY.md; barrar tudo travaria qualquer entrega até o fornecedor corrigir.
+103. **Aceite exigido só na interface, não na API**: a base legal do tratamento é contrato/obrigação legal (prestação do serviço escolar), não consentimento; o aceite registra ciência dos documentos. Bloquear a API quebraria integrações e não protegeria ninguém a mais. A prova (versão, data, IP) fica em `aceites_termos`.
+104. **Versão dos documentos em dois lugares** (`TERMOS_VERSAO` no backend, `DOCUMENTOS_VERSAO` no frontend), conferidos pela API: aceitar uma versão diferente da vigente dá 409. Assim ninguém "aceita" um texto que não viu.
+105. **Anonimização em vez de exclusão**: só de usuário INATIVO e nunca de aluno (histórico escolar tem guarda legal). Troca nome/e-mail, apaga telefone/CPF, senha aleatória; avisos, ocorrências, mensagens e auditoria continuam apontando para o registro anonimizado. Irreversível: o usuário fica só leitura.
+106. **"Meus dados" gera o arquivo no navegador** a partir da resposta da API (nada é gravado no servidor); a resposta vai com `Cache-Control: no-store`.
+107. **Ocorrência do tipo SAUDE é dado sensível** (LGPD art. 11): citada na Política; acesso continua restrito à escola e aos responsáveis do aluno.

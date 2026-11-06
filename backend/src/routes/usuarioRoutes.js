@@ -23,3 +23,5 @@ usuarioRoutes.get('/:id', usuarioController.getById);
 usuarioRoutes.put('/:id', validateBody(updateUsuarioSchema), usuarioController.update);
 usuarioRoutes.patch('/:id/ativo', validateBody(setAtivoSchema), usuarioController.setAtivo);
 usuarioRoutes.patch('/:id/senha', validateBody(resetSenhaSchema), usuarioController.resetSenha);
+// LGPD: anonimização a pedido do titular (irreversível; usuário precisa estar desativado).
+usuarioRoutes.post('/:id/anonimizar', usuarioController.anonimizar);

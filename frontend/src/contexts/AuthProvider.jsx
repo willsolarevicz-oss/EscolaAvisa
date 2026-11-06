@@ -137,6 +137,11 @@ export function AuthProvider({ children }) {
     setState((prev) => (prev.notice ? { ...prev, notice: null } : prev));
   }, []);
 
+  // Depois do aceite da Política/Termos: atualiza a sessão sem precisar consultar o /me de novo.
+  const atualizarTermos = useCallback((termos) => {
+    setState((prev) => (prev.user ? { ...prev, user: { ...prev.user, termos } } : prev));
+  }, []);
+
   const value = useMemo(
     () => ({
       status: state.status,
@@ -150,8 +155,9 @@ export function AuthProvider({ children }) {
       logout,
       retrySessionCheck,
       clearNotice,
+      atualizarTermos,
     }),
-    [state, login, logout, retrySessionCheck, clearNotice],
+    [state, login, logout, retrySessionCheck, clearNotice, atualizarTermos],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

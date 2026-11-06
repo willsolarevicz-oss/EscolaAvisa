@@ -29,3 +29,9 @@ export async function setUsuarioAtivo(id, ativo) {
 export async function resetUsuarioSenha(id, senha) {
   await api.patch(`/usuarios/${id}/senha`, { senha });
 }
+
+/** LGPD: anonimiza um usuário DESATIVADO (irreversível). */
+export async function anonimizarUsuario(id) {
+  const { data } = await api.post(`/usuarios/${id}/anonimizar`);
+  return data.data.user;
+}

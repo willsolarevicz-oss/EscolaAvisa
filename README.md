@@ -4,7 +4,7 @@
 
 Sistema web de comunicação entre a escola e os responsáveis pelos alunos.
 
-> **Status:** Fases 1 a 16 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** , **tela de Responsáveis** (com alerta de alunos sem responsável) e **segurança reforçada** (auditoria, rate limit geral, CSP, CodeQL, Dependabot — ver [SECURITY.md](SECURITY.md)).
+> **Status:** Fases 1 a 17 concluídas — infraestrutura, autenticação e perfis, gestão de usuários, alunos e responsáveis, turmas e disciplinas, **avisos com controle de leitura**, **ocorrências com ciência do responsável**, **notas com boletim**, **calendário escolar com feriados nacionais (BrasilAPI)**, **mensagens entre responsáveis e escola** , **dashboard com indicadores reais e contadores na sidebar**, **CI no GitHub Actions** , **relatórios** (leitura de avisos, ocorrências e notas) , **ajustes de qualidade** (busca sem acento, filtros mantidos, "Minhas turmas" do professor) , **testes automatizados também no frontend** , **tela de Responsáveis** (com alerta de alunos sem responsável) e **segurança reforçada** (auditoria, rate limit geral, CSP, CodeQL, Dependabot — ver [SECURITY.md](SECURITY.md)) e **LGPD no produto** (Política de Privacidade e Termos públicos, aceite versionado, "Meus dados" com download em JSON, anonimização de usuários inativos).
 > Detalhes do que está pronto e do que falta: [PROGRESSO.md](PROGRESSO.md).
 
 | Camada   | Tecnologias                                                                 |
@@ -177,6 +177,7 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | PUT    | `/api/usuarios/:id` | somente ADMIN | Edita nome, e-mail, telefone/CPF (perfil é imutável) |
 | PATCH  | `/api/usuarios/:id/ativo` | somente ADMIN | Ativa/desativa (`{ "ativo": true/false }`) |
 | PATCH  | `/api/usuarios/:id/senha` | somente ADMIN | Redefine a senha (8+ caracteres, letra e número) |
+| POST   | `/api/usuarios/:id/anonimizar` | somente ADMIN | Anonimiza usuário inativo (LGPD; mantém o histórico) |
 | GET    | `/api/alunos`      | somente ADMIN | Lista paginada (`page`, `pageSize`, `busca`, `ativo`) |
 | POST   | `/api/alunos`      | somente ADMIN | Cadastra aluno (`nome`, `dataNascimento` AAAA-MM-DD, `matricula`) |
 | GET    | `/api/alunos/:id`  | somente ADMIN | Detalhe do aluno com os responsáveis vinculados |
@@ -224,6 +225,8 @@ Acesse http://localhost:5173 e entre com as credenciais abaixo.
 | POST   | `/api/conversas/:id/mensagens` | participante | Envia mensagem                       |
 | POST   | `/api/conversas/:id/lida` | participante | Marca a conversa como lida                |
 | GET    | `/api/me/contadores` | todos | Números da sidebar (mensagens novas; avisos/ocorrências pendentes do responsável) |
+| POST   | `/api/me/termos/aceite` | todos | Aceite da Política/Termos (`{ versao }`; 409 se não for a vigente) |
+| GET    | `/api/me/dados` | todos | Cópia dos próprios dados em JSON (LGPD art. 18) |
 | GET    | `/api/calendario/proximos` | todos | Próximos eventos (`limite`, padrão 5) + próximo feriado nacional |
 | GET    | `/api/relatorios/avisos` | ADMIN, PROFESSOR | Leitura de avisos no período (`inicio`, `fim`; padrão 1º/jan–hoje) |
 | GET    | `/api/relatorios/ocorrencias` | ADMIN, PROFESSOR | Ocorrências no período: por tipo, por turma, alunos com mais |

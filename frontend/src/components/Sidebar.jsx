@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
-import { NavLink } from 'react-router';
+import { Link, NavLink } from 'react-router';
+import { INSTITUICAO } from '../config/instituicao';
 import { NAVIGATION } from '../config/navigation';
 import { Logo } from './Logo';
 import styles from './Sidebar.module.css';
@@ -67,7 +68,14 @@ export function Sidebar({ id, open, onClose, tipoUsuario, contadores = {} }) {
           ))}
         </nav>
 
-        <p className={styles.footer}>Versão 1.6 · Fase 16</p>
+        <div className={styles.footer}>
+          {/* Identificação do fornecedor e links legais (LGPD / CDC). */}
+          <p>{INSTITUICAO.nome}</p>
+          <p>
+            <Link to="/privacidade">Privacidade</Link> · <Link to="/termos">Termos</Link>
+          </p>
+          <p>Versão 1.7 · Fase 17</p>
+        </div>
       </aside>
     </>
   );

@@ -1,9 +1,10 @@
-import { ArrowLeft, Check, Circle, KeyRound, Lock, Mail, Save, User } from 'lucide-react';
+import { ArrowLeft, Check, Circle, KeyRound, Lock, Mail, Save, User, UserX } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Alert } from '../../components/Alert';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
@@ -11,12 +12,13 @@ import { useEntityLoader } from '../../hooks/useEntityLoader';
 import { getApiErrorMessage } from '../../services/api';
 import { toFieldErrors } from '../../utils/apiErrors';
 import {
+  anonimizarUsuario,
   createUsuario,
   getUsuario,
   resetUsuarioSenha,
   updateUsuario,
 } from '../../services/usuarioService';
-import { maskCpf, maskTelefone, ROLE_OPTIONS, roleLabel } from '../../utils/formatters';
+import { formatDate, maskCpf, maskTelefone, ROLE_OPTIONS, roleLabel } from '../../utils/formatters';
 import styles from '../../styles/FormPage.module.css';
 import { urlDaLista } from '../../utils/listaMemoria';
 
@@ -155,6 +157,68 @@ function ResetPasswordCard({ usuario }) {
   );
 }
 
+/**
+ * LGPD art. 18: anonimizar a pedido do titular. Só para usuário DESATIVADO (dois passos, evita
+ * engano). Irreversível: nome, e-mail, senha, telefone e CPF são trocados/apagados; o histórico
+ * (avisos, mensagens) continua apontando para o registro.
+ */
+function AnonimizarCard({ usuario }) {
+  const navigate = useNavigate();
+  const [confirmando, setConfirmando] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [erro, setErro] = useState('');
+
+  async function handleConfirm() {
+    setSaving(true);
+    try {
+      await anonimizarUsuario(usuario.id);
+      navigate(urlDaLista('/usuarios'), {
+        state: { flash: { type: 'success', message: 'Dados pessoais do usuário anonimizados.' } },
+      });
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível anonimizar o usuário.'));
+      setConfirmando(false);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-labelledby="anonimizar-title">
+      <div className={styles.cardHeader}>
+        <h3 id="anonimizar-title" className={styles.cardTitle}>
+          Anonimizar (LGPD)
+        </h3>
+        <p className={styles.cardText}>
+          Use quando o titular pedir a exclusão dos dados. Nome, e-mail, telefone e CPF são apagados e a conta não pode
+          mais ser usada. <strong>Não pode ser desfeito.</strong>
+        </p>
+      </div>
+      <div className={styles.form}>
+        {erro && <Alert type="error">{erro}</Alert>}
+        <div className={styles.formActions}>
+          <Button variant="danger" icon={UserX} onClick={() => setConfirmando(true)} disabled={saving}>
+            Anonimizar usuário
+          </Button>
+        </div>
+      </div>
+      <ConfirmDialog
+        open={confirmando}
+        title="Anonimizar este usuário?"
+        confirmLabel="Anonimizar"
+        confirmVariant="danger"
+        loading={saving}
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmando(false)}
+      >
+        <p>
+          Os dados pessoais de <strong>{usuario.nome}</strong> serão apagados para sempre. Avisos, ocorrências e mensagens
+          continuam no histórico, sem identificar a pessoa.
+        </p>
+      </ConfirmDialog>
+    </section>
+  );
+}
+
 const EMPTY_FORM = { nome: '', email: '', tipoUsuario: '', senha: '', confirmacao: '', telefone: '', cpf: '' };
 
 export function UsuarioFormPage() {
@@ -264,6 +328,24 @@ export function UsuarioFormPage() {
               Tentar novamente
             </Button>
           )}
+          <Button to={urlDaLista('/usuarios')} icon={ArrowLeft}>
+            Voltar para usuários
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Anonimizado: não há mais dados para editar; a tela só explica o que aconteceu.
+  if (isEdit && original.anonimizadoEm) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Usuário anonimizado" breadcrumbs={breadcrumbs} />
+        <Alert type="info">
+          Os dados pessoais deste usuário foram anonimizados em {formatDate(original.anonimizadoEm)} (LGPD). O registro
+          continua apenas para manter o histórico de avisos, ocorrências e mensagens.
+        </Alert>
+        <div className={styles.formActions}>
           <Button to={urlDaLista('/usuarios')} icon={ArrowLeft}>
             Voltar para usuários
           </Button>
@@ -418,6 +500,7 @@ export function UsuarioFormPage() {
       </section>
 
       {isEdit && <ResetPasswordCard usuario={original} />}
+      {isEdit && !original.ativo && <AnonimizarCard usuario={original} />}
     </div>
   );
 }
