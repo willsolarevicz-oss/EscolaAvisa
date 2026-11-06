@@ -1,0 +1,30 @@
+# CodeQL: análise estática de segurança do GitHub (procura injeção, XSS, segredos no código etc.).
+# Gratuito para repositório público. Os achados aparecem em Security → Code scanning.
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # toda segunda, 06:00 UTC: pega vulnerabilidades novas em código parado
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Análise de segurança (JavaScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Inclui as consultas de segurança extras além das padrão.
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@v3

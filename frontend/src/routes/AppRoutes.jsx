@@ -3,6 +3,7 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { SessionAwareLayout } from '../layouts/SessionAwareLayout';
 import { AlunoFormRoute } from '../pages/alunos/AlunoFormPage';
 import { AlunosListPage } from '../pages/alunos/AlunosListPage';
+import { AuditoriaPage } from '../pages/auditoria/AuditoriaPage';
 import { AvisoDetailPage } from '../pages/avisos/AvisoDetailPage';
 import { AvisoFormPage } from '../pages/avisos/AvisoFormPage';
 import { AvisosListPage } from '../pages/avisos/AvisosListPage';
@@ -60,6 +61,7 @@ export function AppRoutes() {
             <Route path="/usuarios/novo" element={<UsuarioFormRoute />} />
             <Route path="/usuarios/:id/editar" element={<UsuarioFormRoute />} />
             <Route path="/responsaveis" element={<ResponsaveisListPage />} />
+            <Route path="/auditoria" element={<AuditoriaPage />} />
             <Route path="/alunos" element={<AlunosListPage />} />
             <Route path="/alunos/novo" element={<AlunoFormRoute />} />
             <Route path="/alunos/:id/editar" element={<AlunoFormRoute />} />

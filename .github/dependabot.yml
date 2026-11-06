@@ -1,0 +1,27 @@
+# Dependabot: abre PRs semanais atualizando dependências (e avisa de vulnerabilidades).
+# Cada PR passa pela CI como qualquer outro; ninguém faz merge sem revisar.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Atualizações pequenas juntas num PR só, para não inundar a lista.
+    groups:
+      backend-menores:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      frontend-menores:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

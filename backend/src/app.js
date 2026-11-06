@@ -2,7 +2,9 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
+import { auditoria } from './middlewares/auditoria.js';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
+import { apiRateLimiter } from './middlewares/rateLimiters.js';
 import { apiRoutes } from './routes/index.js';
 
 /** Cria o app Express sem abrir porta (o server.js faz o listen; os testes usam direto). */
@@ -23,7 +25,9 @@ export function createApp() {
   // Limite baixo: a API só recebe JSON pequeno (uploads, se houver, terão rota própria).
   app.use(express.json({ limit: '100kb' }));
 
-  app.use('/api', apiRoutes);
+  // Auditoria primeiro (registra até as requisições barradas pelo limite, que são sinal de ataque);
+  // depois o limite geral por IP (o login tem um limite próprio, mais rígido).
+  app.use('/api', auditoria, apiRateLimiter, apiRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
