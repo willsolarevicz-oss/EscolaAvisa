@@ -11,4 +11,9 @@ export default defineConfig({
   preview: {
     port: 4173,
   },
+  // Vitest (npm test): DOM simulado com jsdom; setup registra os matchers do jest-dom.
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
 });
